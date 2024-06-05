@@ -21,7 +21,7 @@ for i, sn_id in enumerate(sn_ids):
     uberID = result_table['uberID'][sn_mask]
     separations = result_table['Separation_arcsec'][sn_mask]
 
-    major_axis = result_table['R100'][sn_mask]
+    major_axis = result_table['R50'][sn_mask] #arcsec
     axrat = result_table['axrat'][sn_mask]
     minor_axis = axrat*major_axis # axial ratio = minor/major -> minor = axial ratio * major
 

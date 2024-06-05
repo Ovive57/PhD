@@ -161,7 +161,7 @@ gama_SFR_file = "data/MagPhysv06.fits" # 'CATAID', 'Z', 'sSFR_0_1Gyr_best_fit', 
 
 #separations = [1.5]#,5,47,465]
 #matched_file = [f"crossmatches/crossmatch_GAMA_ZTF_maxsep_{sep}arcsec_dim2.fits" for sep in separations] # 'uberID', 'RAcen', 'Deccen', 'CATAID', 'Z', 'ra', 'declination', 'redshift'
-matched_file = "crossmatches/positional/crossmatch_GAMA_ZTF_maxsep_465arcsec_dim2.fits" # 'uberID', 'RAcen', 'Deccen', 'CATAID', 'Z', 'ra', 'declination', 'redshift'
+matched_file = "crossmatches/positional/crossmatch_GAMA_ZTF_maxsep_47arcsec_dim2.fits" # 'uberID', 'RAcen', 'Deccen', 'CATAID', 'Z', 'ra', 'declination', 'redshift'
 
 #! I need 3 catalogues:
     #! plot 1: (colour - mass) + host(colour - mass) EASY, DONE
@@ -189,7 +189,7 @@ selected_matched = matched_cat[['uberID', 'ra', 'declination', 'redshift', 'sep_
 colour_mass_cat = selected_mass
 colour_mass_cat.write('crossmatches/specifics/colour_mass_all.fits', overwrite = True)
 matched_color_mass_cat = join(selected_mass, selected_matched, keys='uberID')
-matched_color_mass_cat.write('crossmatches/specifics/colour_mass_matched465.fits', overwrite = True)
+matched_color_mass_cat.write('crossmatches/specifics/colour_mass_matched47.fits', overwrite = True)
 
 # plot 2:
 
@@ -198,14 +198,14 @@ colour_sersic_cat_viking = join(colour_sersic_cat_viking1, selected_sersic_VIKIN
 colour_sersic_cat_viking.write('crossmatches/specifics/colour_sersic_all_VIKING.fits', overwrite = True)
 
 matched_colour_sersic_cat_viking = join(colour_sersic_cat_viking, selected_matched, keys='uberID')
-matched_colour_sersic_cat_viking.write('crossmatches/specifics/colour_sersic_matched465_VIKING.fits', overwrite = True)
+matched_colour_sersic_cat_viking.write('crossmatches/specifics/colour_sersic_matched47_VIKING.fits', overwrite = True)
 
 colour_sersic_cat_sdss1 = join(selected_science, selected_mass, keys='uberID')
 colour_sersic_cat_sdss = join(colour_sersic_cat_sdss1, selected_sersic_SDSS, keys='CATAID')
 colour_sersic_cat_sdss.write('crossmatches/specifics/colour_sersic_all_SDSS.fits', overwrite = True)
 
 matched_colour_sersic_cat_sdss = join(colour_sersic_cat_sdss, selected_matched, keys='uberID')
-matched_colour_sersic_cat_sdss.write('crossmatches/specifics/colour_sersic_matched465_SDSS.fits', overwrite = True)
+matched_colour_sersic_cat_sdss.write('crossmatches/specifics/colour_sersic_matched47_SDSS.fits', overwrite = True)
 
 
 # plot 3:
@@ -215,4 +215,4 @@ colour_SFR_cat = join(colour_SFR_cat1, selected_SFR, keys='CATAID')
 colour_SFR_cat.write('crossmatches/specifics/colour_SFR_all.fits', overwrite = True)
 
 matched_colour_SFR_cat = join(colour_SFR_cat, selected_matched, keys='uberID')
-matched_colour_SFR_cat.write('crossmatches/specifics/colour_SFR_matched465.fits', overwrite = True)
+matched_colour_SFR_cat.write('crossmatches/specifics/colour_SFR_matched47.fits', overwrite = True)

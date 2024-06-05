@@ -15,8 +15,6 @@ cosmo = FlatLambdaCDM(H0=67.8, Om0=0.308)
 
 plt.style.use(style.style1)
 
-### Ned plots:
-
 gama_file = "data/gkvScienceCatv02.fits"
 ztf_file = "data/tns_SNIa_20240424_copy.csv"
 
@@ -75,34 +73,33 @@ def plot_color_mass(cat_file1, cat_file2, separations):
         logmass = cat2['logmstar']
         #plot
         matches = len(logmass)
-        logmass = logmass
-        gminusi = gminusi
+
         ax.scatter(logmass, gminusi, marker = 'o', c = 'r', label = f'host galaxies, {matches} matches')
-        
+
+        '''
         ##### Plot host galaxies matched m<0
         #match = join(cat1, cat2, keys='uberID')
         #print(match.info)
 
-        #color:
-        gminusi = cat2['gminusi']
-
         #masses:
-        mstar = cat2['mstar']
         mass_constraint = np.where(mstar<0)
-        logmass = cat2['logmstar']
+
         #plot
         matches = len(logmass)
         logmass = logmass[mass_constraint]
         gminusi = gminusi[mass_constraint]
         ax.scatter(logmass, gminusi, marker = 'o', c = 'y', label = f'host galaxies, m<0')
+        '''
         plt.ylim(0,1.7)
         plt.xlim(7,12.5)
+        plt.title(f'Colour vs Mass, sepeparation $\leq$ {separations[i]}" ')
         plt.legend()
-        plt.savefig(f'plots/color_mass_{separations[i]}.jpg')
-        plt.show()
+        plt.savefig(f'plots/colour/colour_mass_{separations[i]}.jpg')
+        plt.savefig(f'plots/colour/pdf/colour_mass_{separations[i]}.pdf')
+        #plt.show()
 
-matched_mass_file = [f"crossmatches/join_colour_mass_cat_matched{sep}.fits" for sep in separations]
-gama_masses_file = 'crossmatches/join_colour_mass_cat_all.fits'
+matched_mass_file = [f"crossmatches/specifics/colour_mass_matched{sep}.fits" for sep in separations]
+gama_masses_file = 'crossmatches/specifics/colour_mass_all.fits'
 #plot_color_mass(gama_masses_file, matched_mass_file, separations)
 #exit()
 
@@ -121,6 +118,8 @@ def plot_color_sersic(cat_file1, cat_file2, separations, viking = True):
         fig,ax=plt.subplots()
         plt.ylabel('restframe (g-i) colour (mag)')
         plt.xlabel('sersic index (n$_i$)')
+        plt.title(f'Colour vs Sersic, sepeparation $\leq$ {separations[i]}" ')
+
         if viking:
             plt.xlabel('sersic index (n$_Z$)')
 
@@ -211,15 +210,19 @@ def plot_color_sersic(cat_file1, cat_file2, separations, viking = True):
         '''
         plt.legend()
         if viking:
-            plt.savefig(f'plots/color_sersic_{separations[i]}_VIKING.jpg')
+            plt.savefig(f'plots/colour/colour_sersic_{separations[i]}_VIKING.jpg')
+            plt.savefig(f'plots/colour/pdf/colour_sersic_{separations[i]}_VIKING.pdf')
+
         else:
-            plt.savefig(f'plots/color_sersic_{separations[i]}_SDSS.jpg')
-        plt.show()
+            plt.savefig(f'plots/colour/colour_sersic_{separations[i]}_SDSS.jpg')
+            plt.savefig(f'plots/colour/pdf/colour_sersic_{separations[i]}_SDSS.pdf')
 
-matched_sersic_file = [f"crossmatches/join_colour_sersic_cat_matched{sep}_SDSS.fits" for sep in separations]
-gama_sersic_file = 'crossmatches/join_colour_sersic_cat_all_SDSS.fits'
+        #plt.show()
+
+matched_sersic_file = [f"crossmatches/specifics/colour_sersic_matched{sep}_SDSS.fits" for sep in separations]
+gama_sersic_file = 'crossmatches/specifics/colour_sersic_all_SDSS.fits'
 #plot_color_sersic(gama_sersic_file, matched_sersic_file, separations, viking=False)
-
+#exit()
 
 
 def plot_color_SFR(cat_file1, cat_file2, separations):
@@ -235,6 +238,7 @@ def plot_color_SFR(cat_file1, cat_file2, separations):
     for i, file in enumerate(cat_file2):
         #plot
         fig,ax=plt.subplots()
+        plt.title(f'Colour vs SFR, sepeparation $\leq$ {separations[i]}" ')
         plt.ylabel('restframe (g-i) colour (mag)')
         plt.xlabel('SFR (M$_{\\odot}$ yr$^{-1}$)')
 
@@ -273,7 +277,7 @@ def plot_color_SFR(cat_file1, cat_file2, separations):
         #plt.xlim(0,11)
         #plt.xscale('log')
 
-
+        '''
         #### constraints:
         z = cat2['Z']
         mstar = cat2['mstar']
@@ -293,14 +297,17 @@ def plot_color_SFR(cat_file1, cat_file2, separations):
         ax.scatter(sfr, gminusi, marker = 'o', c = 'y', label = 'host galaxies, m<0')
 
         #plt.xlim(0,100)
+        '''
         plt.xscale('log')
         plt.legend()
-        plt.savefig(f'plots/color_sfr_{separations[i]}.jpg')
-        plt.show()
+        plt.savefig(f'plots/colour/colour_sfr_{separations[i]}.jpg')
+        plt.savefig(f'plots/colour/pdf/colour_sfr_{separations[i]}.pdf')
+
+        #plt.show()
 
 
-matched_SFR_file = [f"crossmatches/join_colour_SFR_cat_matched{sep}.fits" for sep in separations]
-gama_SFR_file = 'crossmatches/join_colour_SFR_cat_all.fits'
+matched_SFR_file = [f"crossmatches/specifics/colour_SFR_matched{sep}.fits" for sep in separations]
+gama_SFR_file = 'crossmatches/specifics/colour_SFR_all.fits'
 #plot_color_SFR(gama_SFR_file, matched_SFR_file, separations)
 #exit()
 
@@ -319,6 +326,8 @@ def plot_color_sSFR(cat_file1, cat_file2, separations):
         fig,ax=plt.subplots()
         plt.ylabel('restframe (g-i) colour (mag)')
         plt.xlabel('sSFR (yr$^{-1}$)')
+        plt.title(f'Colour vs sSFR, sepeparation $\leq$ {separations[i]}" ')
+
 
         ##### CAT
         cat1 = Table.read(cat_file1)
@@ -355,7 +364,7 @@ def plot_color_sSFR(cat_file1, cat_file2, separations):
         #plt.xlim(0,11)
         #plt.xscale('log')
 
-
+        '''
         #### constraints:
         z = cat2['Z']
         mstar = cat2['mstar']
@@ -373,20 +382,21 @@ def plot_color_sSFR(cat_file1, cat_file2, separations):
 
         matches = len(gminusi)
         ax.scatter(sfr, gminusi, marker = 'o', c = 'y', label = 'host galaxies, m<0')
-
+        '''
         #plt.xlim(0,100)
         plt.xscale('log')
         plt.legend()
-        plt.savefig(f'plots/color_ssfr_{separations[i]}.jpg')
-        plt.show()
+        plt.savefig(f'plots/colour/colour_ssfr_{separations[i]}.jpg')
+        plt.savefig(f'plots/colour/pdf/colour_ssfr_{separations[i]}.pdf')
+        #plt.show()
 
 
-matched_SFR_file = [f"crossmatches/join_colour_SFR_cat_matched{sep}.fits" for sep in separations]
-gama_SFR_file = 'crossmatches/join_colour_SFR_cat_all.fits'
+matched_SFR_file = [f"crossmatches/specifics/colour_SFR_matched{sep}.fits" for sep in separations]
+gama_SFR_file = 'crossmatches/specifics/colour_SFR_all.fits'
 #plot_color_sSFR(gama_SFR_file, matched_SFR_file, separations)
 #exit()
 
-def color_comparison(cat_file1, cat_file2, separations, outlayer, test = False):
+def color_comparison(cat_file1, cat_file2, separations, outlier, test = False):
     """Do two figures, to compare restframe g-i colour with intrinsic stellar g-i colour
 
     Args:
@@ -543,7 +553,7 @@ def color_comparison(cat_file1, cat_file2, separations, outlayer, test = False):
         ax4.scatter(logmstar, gminusi, marker = 'o', c = 'r', label = f'host galaxies', zorder = 100)
         ax5.scatter(logmstar, gminusi_stars, marker = 'o', c = 'r', label = f'host galaxies', zorder = 100)
 
-        if outlayer == 'ssfr':
+        if outlier == 'ssfr':
             ax1.scatter(ssfr[ind_ssfr], gminusi[ind_ssfr], marker = 'x', c = 'orange', label = 'sSFR < 4e-11', zorder = 101)
             ax2.scatter(ssfr[ind_ssfr], gminusi_stars[ind_ssfr], marker = 'x', c = 'orange', label = 'sSFR < 4e-11', zorder = 101)
 
@@ -553,11 +563,12 @@ def color_comparison(cat_file1, cat_file2, separations, outlayer, test = False):
             ax4.scatter(logmstar[ind_ssfr], gminusi[ind_ssfr], marker = 'x', c = 'orange', label = 'sSFR < 4e-11', zorder = 101)
             ax5.scatter(logmstar[ind_ssfr], gminusi_stars[ind_ssfr],marker = 'x', c = 'orange', label = 'sSFR < 4e-11', zorder = 101)
 
-            outlayer_cat = cat2[ind_ssfr]
-            output_path = f"cat/outlayers_ssfr.fits"
-            outlayer_cat.write(output_path, overwrite = True)
+            outlier_cat = cat2[ind_ssfr]
+            output_path = f"crossmatches/outliers/colours_outliers_ssfr_{separations[i]}.fits"
+            outlier_cat.write(output_path, overwrite = True)
 
-        if outlayer == 'logmass':
+        if outlier == 'logmstar':
+            print("\033[1;35;40m Bright Magenta \033[0m 1;35;40m \033[0;35;47m Magenta \033[0m 0;35;47m \033[0;37;46m Black \033[0m 0;37;46m")
             ax1.scatter(ssfr[ind_mass], gminusi[ind_mass], marker = 'x', c = 'orange', label = 'logmass > 10', zorder = 101)
             ax2.scatter(ssfr[ind_mass], gminusi_stars[ind_mass], marker = 'x', c = 'orange', label = 'logmass > 10', zorder = 101)
 
@@ -567,9 +578,9 @@ def color_comparison(cat_file1, cat_file2, separations, outlayer, test = False):
             ax4.scatter(logmstar[ind_mass], gminusi[ind_mass], marker = 'x', c = 'orange', label = 'logmass > 10', zorder = 101)
             ax5.scatter(logmstar[ind_mass], gminusi_stars[ind_mass],marker = 'x', c = 'orange', label = 'logmass > 10', zorder = 101)
 
-            outlayer_cat = cat2[ind_mass]
-            output_path = f"cat/outlayers_logmass.fits"
-            outlayer_cat.write(output_path, overwrite = True)
+            outlier_cat = cat2[ind_mass]
+            output_path = f"crossmatches/outliers/colours_outliers_logmass_{separations[i]}.fits"
+            outlier_cat.write(output_path, overwrite = True)
 
         '''
         ax3.scatter(ssfr, gminusi, marker = 'o', c = 'darkturquoise', label = f'host galaxies', zorder = 100)
@@ -600,33 +611,39 @@ def color_comparison(cat_file1, cat_file2, separations, outlayer, test = False):
 
         if test:
 
-            fig1.savefig(f'plots/tests/color_ssfr_{separations[i]}_color_comparison_outlayer_{outlayer}.jpg')
-            #fig2.savefig(f'plots/tests/color_ssfr_{separations[i]}_color_comparison_all_together_morelevels.jpg')
+            fig1.savefig(f'plots/tests/comparison_colour_ssfr_{separations[i]}_outlier_{outlier}.jpg')
+            #fig2.savefig(f'plots/tests/comparison_colour_ssfr_{separations[i]}_all_together_morelevels.jpg')
 
-            fig3.savefig(f'plots/tests/color_mstar_{separations[i]}_color_comparison_outlayer_{outlayer}.jpg')
-            #fig4.savefig(f'plots/tests/color_mstar_{separations[i]}_color_comparison_all together_morelevels.jpg')
+            fig3.savefig(f'plots/tests/comparison_colour_mstar_{separations[i]}_outlier_{outlier}.jpg')
+            #fig4.savefig(f'plots/tests/comparison_colour_mstar_{separations[i]}_all together_morelevels.jpg')
 
-            fig5.savefig(f'plots/tests/color_sfr_{separations[i]}_color_comparison_outlayer_{outlayer}.jpg')
-            #fig6.savefig(f'plots/tests/color_sfr_{separations[i]}_color_comparison_all_together_morelevels.jpg')
+            fig5.savefig(f'plots/tests/comparison_colour_sfr_{separations[i]}_outlier_{outlier}.jpg')
+            #fig6.savefig(f'plots/tests/comparison_colour_sfr_{separations[i]}_all_together_morelevels.jpg')
 
         else:
 
-            fig1.savefig(f'plots/color_ssfr_{separations[i]}_color_comparison_outlayer_{outlayer}.jpg')
-            #fig2.savefig(f'plots/color_ssfr_{separations[i]}_color_comparison_all_together_morelevels.jpg')
+            fig1.savefig(f'plots/colour/comparison_colour_ssfr_{separations[i]}_outlier_{outlier}.jpg')
+            fig1.savefig(f'plots/colour/pdf/comparison_colour_ssfr_{separations[i]}_outlier_{outlier}.pdf')
+            #fig2.savefig(f'plots/comparison_colour_ssfr_{separations[i]}_all_together_morelevels.jpg')
 
-            fig3.savefig(f'plots/color_mstar_{separations[i]}_color_comparison_outlayer_{outlayer}.jpg')
-            #fig4.savefig(f'plots/color_mstar_{separations[i]}_color_comparison_all together_morelevels.jpg')
+            fig3.savefig(f'plots/colour/comparison_colour_mstar_{separations[i]}_outlier_{outlier}.jpg')
+            fig3.savefig(f'plots/colour/pdf/comparison_colour_mstar_{separations[i]}_outlier_{outlier}.pdf')
+            #fig4.savefig(f'plots/comparison_colour_mstar_{separations[i]}_all together_morelevels.jpg')
 
-            fig5.savefig(f'plots/color_sfr_{separations[i]}_color_comparison_outlayer_{outlayer}.jpg')
-            #fig6.savefig(f'plots/color_sfr_{separations[i]}_color_comparison_all_together_morelevels.jpg')
+            fig5.savefig(f'plots/colour/comparison_colour_sfr_{separations[i]}_outlier_{outlier}.jpg')
+            fig5.savefig(f'plots/colour/pdf/comparison_colour_sfr_{separations[i]}_outlier_{outlier}.pdf')
+
+            #fig6.savefig(f'plots/comparison_colour_sfr_{separations[i]}_all_together_morelevels.jpg')
 
         #plt.show()
 
-separations = [465]
-matched_SFR_file = [f"crossmatches/join_colour_SFR_cat_matched{sep}.fits" for sep in separations]
-gama_SFR_file = 'crossmatches/join_colour_SFR_cat_all.fits'
-color_comparison(gama_SFR_file, matched_SFR_file, separations, outlayer='ssfr', test = True)
-exit()
+separations = [1.5,5,47,465]
+matched_SFR_file = [f"crossmatches/specifics/colour_SFR_matched{sep}.fits" for sep in separations]
+gama_SFR_file = 'crossmatches/specifics/colour_SFR_all.fits'
+#color_comparison(gama_SFR_file, matched_SFR_file, separations, outlier='ssfr', test = False)
+#color_comparison(gama_SFR_file, matched_SFR_file, separations, outlier='logmstar', test = False)
+
+#exit()
 
 def color_comparison_2(cat_file1, cat_file2, separations, test = False):
     """Do two figures, to compare restframe g-i colour with intrinsic stellar g-i colour
@@ -943,112 +960,17 @@ def save_kde_to_fits(plot_type, cat_file):
 
 #save_kde_to_fits(plot_type='mass', cat_file=gama_SFR_file)
 
-def galaxies_redshift(cat_files, separation, nbins): #, colors):
-    """Distribution of host galaxies vs redshift
-
-    Args:
-        cat_files (_type_): _description_
-        colors (_type_): _description_
-    """
-    fig1,ax1=plt.subplots()
-    fig2,ax2=plt.subplots()
-    fig3,ax3=plt.subplots()
-    #plt.ylabel('restframe (g-i) colour (mag)')
-
-    bins_edges = np.linspace(0.01, 0.22, (nbins+1))
-    centers = bins_edges[:-1] + np.diff(bins_edges) / 2
-    for i, file in enumerate(cat_files):
-        cat = Table.read(file)
-
-        zspec = cat['Z'] #Spectroscopic redshift GAMA
-        ind = np.where(zspec>0)
-        print(zspec.max())
-        z = cat['redshift'] #Redshift ZTF #! See type of redshift
-        hist, bins = np.histogram(zspec[ind], bins=nbins)
-        #plt.title('Star Formation Rate Function z = ')
-
-        #ax1.plot(bins_edges[:-1], hist, '.', label = f"sep = {separation[i]} arcsec")
-        ax1.hist(bins_edges[:-1], bins_edges, weights=hist,histtype='step',  label = f"sep = {separation[i]} arcsec")#, color = colors[i])
-        #ax1.stairs(hist-1, bins_edges,color=colors[i], label = f"sep = {separation[i]} arcsec")
-        #ax1.plot(centers, hist - 1, 'o--', color=colors[i], alpha=0.3)
-        ax1.set_title('Distribution host galaxies vs redshift')
-        ax1.set_xlabel('Spectroscopic redshift (z)')
-        ax1.legend()
-
-
-        #print(bin_edges)
-        hist, bins = np.histogram(z, bins=nbins)
-
-        #ax2.plot(bins_edges[:-1], hist, '.', label = f"sep = {separation[i]} arcsec")
-        ax2.hist(bins_edges[:-1], bins_edges, weights=hist,histtype='step', label = f"sep = {separation[i]} arcsec")# , color = colors[i])
-        #ax2.stairs(hist-1, bins_edges,color=colors[i], label = f"sep = {separation[i]} arcsec")
-        #ax2.plot(centers, hist - 1, 'o--', color=colors[i], alpha=0.3)
-        ax2.set_title('Distribution SN vs redshift')
-        ax2.set_xlabel('Redshift (z)')
-        ax2.legend()
-
-
-        diffz = np.abs(z[ind]-zspec[ind])
-        hist, bins = np.histogram(diffz, bins=nbins)
-        #ax3.plot(bins_edges[:-1], hist, '.', label = f"sep = {separation[i]} arcsec")
-        ax3.hist(bins_edges[:-1], bins_edges, weights=hist,histtype='step', label = f"sep = {separation[i]} arcsec") #, color = colors[i])
-        #ax3.stairs(hist-1, bins_edges,color=colors[i], label = f"sep = {separation[i]} arcsec")
-        #ax3.plot(centers, hist - 1, 'o--', color=colors[i], alpha=0.3)
-        ax3.set_title('Distribution vs difference of redshift')
-        ax3.set_xlabel('$\\Delta$Redshift ($\\Delta$z)')
-        ax3.legend()
-
-    #fig1.savefig('plots/galaxies_redshift.png')
-    #fig2.savefig('plots/SN_redshift.png')
-    fig3.savefig('plots/diff_redshift_biggest.png')
-
-    #plt.show()
-
-c = ['b', 'g', 'r', 'orange']
-sep = [47,465]#[1.5, 5, 47]#, 465]
-matched_files = [f"crossmatches/crossmatch_GAMA_ZTF_maxsep_{s}arcsec_dim2.fits" for s in sep]
-#galaxies_redshift(matched_files, sep, nbins=20)#, colors = c)
-#exit()
-
-def matches_around(cat_file1, cat_file2):
-    """Histogram of host galaxies arranged by separation of the SN.
-
-    Args:
-        cat_file1 (_type_): _description_
-        cat_file2 (_type_): _description_
-    """
-    cat1 = Table.read(cat_file1)
-    cat2 = Table.read(cat_file2)
-
-    radec1 = co.SkyCoord(cat1['RAcen'], cat1['Deccen'], unit='deg') # GAMA (ICRS): (ra, dec) in deg
-    radec2 = co.SkyCoord(cat2['ra']*u.deg, cat2['declination']*u.deg) # ZTF (ICRS): (ra, dec) in deg
-
-    a2b, b2a, sep, _ = radec1.search_around_sky(radec2, seplimit=50*u.arcsec)
-
-    fig,ax=plt.subplots()
-    bins = 35
-    ax.hist(sep.arcsec, bins=bins)
-    ax.set_title(f'Match around, max radius = 50", {bins} bins')
-    ax.set_xlabel('distance (arcsec)')
-    fig.savefig('plots/density_random_matches.png')
-
-
-    plt.show()
-
-#matches_around(gama_file, ztf_file)
-
-
-
-def sfr_mass(cat_file1, cat_file2, separations):
+def sfr_mass(cat_file1, cat_file2, separations, outlier):
 
     for i, file in enumerate(cat_file2):
         #plot
-        fig1, (ax1, ax2) = plt.subplots(1, 2)
-        fig1.set_figwidth(20)
-        ax1.set_title('SFR vs Mstellar') #! Change here things
+        fig1, ax1 = plt.subplots()
+        fig2, ax2 = plt.subplots()
+
+        ax1.set_title('SFR vs Mstellar')
         ax2.set_title('sSFR vs Mstellar')
-        ax1.set(xlabel = ('log(M$_{stellar}$)(dex(M$_{\\odot}$))'), ylabel = ('SFR (M$_{\\odot}$ yr$^{-1}$)'), yscale = ('log'), xlim = (7,12), ylim = (10e-5,10e3))
-        ax2.set(xlabel = ('log(M$_{stellar}$)(dex(M$_{\\odot}$))'), ylabel = ('sSFR (yr$^{-1}$)'), yscale = ('log'), xlim = (7,12), ylim = (10e-14,10e-8))#, yscale = ('log'))
+        ax1.set(xlabel = ('log(M$_{stellar}$)(dex(M$_{\\odot}$))'), ylabel = ('SFR (M$_{\\odot}$ yr$^{-1}$)'), yscale = ('log'), xlim = (7,12), ylim = (1e-5,1e3))
+        ax2.set(xlabel = ('log(M$_{stellar}$)(dex(M$_{\\odot}$))'), ylabel = ('sSFR (yr$^{-1}$)'), yscale = ('log'), xlim = (7,12), ylim = (1e-14,1e-8))#, yscale = ('log'))
         ##### CAT
         cat1 = Table.read(cat_file1)
         cat2 = Table.read(file)
@@ -1094,11 +1016,31 @@ def sfr_mass(cat_file1, cat_file2, separations):
 
         logmstar = cat2['logmstar']
 
+        # ssfr
+        ind_ssfr = np.where(ssfr<4e-11)
+
+        #mass
+        ind_mass = np.where(logmstar>10)
+
         matches = len(logmstar)
 
-        ax1.scatter(logmstar, sfr, marker = 'o', c = 'r', label = f'host galaxies, {matches} matches', zorder = 100)
-        ax2.scatter(logmstar, ssfr, marker = 'o', c = 'r', label = f'host galaxies, {matches} matches', zorder = 100)
+        ax1.scatter(logmstar, sfr, marker = 'o', c = 'r', label = f'host galaxies', zorder = 100)
+        ax2.scatter(logmstar, ssfr, marker = 'o', c = 'r', label = f'host galaxies', zorder = 100)
 
+        if outlier == 'ssfr':
+            ax1.scatter(logmstar[ind_ssfr], sfr[ind_ssfr], marker = 'x', c = 'orange', label = 'sSFR < 4e-11', zorder = 101)
+            ax2.scatter(logmstar[ind_ssfr], ssfr[ind_ssfr], marker = 'x', c = 'orange', label = 'sSFR < 4e-11', zorder = 101)
+
+            outlier_cat = cat2[ind_ssfr]
+            output_path = f"crossmatches/outliers/mass_outliers_ssfr_{separations[i]}.fits"
+            outlier_cat.write(output_path, overwrite = True)
+        if outlier == 'logmass':
+            ax1.scatter(logmstar[ind_mass], sfr[ind_mass], marker = 'x', c = 'orange', label = 'logmass > 10', zorder = 101)
+            ax2.scatter(logmstar[ind_mass], ssfr[ind_mass], marker = 'x', c = 'orange', label = 'logmass > 10', zorder = 101)
+
+            outlier_cat = cat2[ind_mass]
+            output_path = f"crossmatches/outliers/mass_outliers_mass_{separations[i]}.fits"
+            outlier_cat.write(output_path, overwrite = True)
 
 
         #plt.xlim(0,11)
@@ -1109,13 +1051,143 @@ def sfr_mass(cat_file1, cat_file2, separations):
         ax1.legend()
         ax2.legend()
 
-        fig1.savefig(f'plots/mass_sfr_ssfr_{separations[i]}.jpg')
+        fig1.savefig(f'plots/mass/mass_sfr_{separations[i]}_outlier_{outlier}.jpg')
+        fig2.savefig(f'plots/mass/mass_ssfr_{separations[i]}_outlier_{outlier}.jpg')
+        fig1.savefig(f'plots/mass/pdf/mass_sfr_{separations[i]}_outlier_{outlier}.pdf')
+        fig2.savefig(f'plots/mass/pdf/mass_ssfr_{separations[i]}_outlier_{outlier}.pdf')
 
-        plt.show()
+        #plt.show()
 
 
-#sfr_mass(gama_SFR_file, matched_SFR_file, separations)
+#sfr_mass(gama_SFR_file, matched_SFR_file, separations, outlier='logmass')
+#sfr_mass(gama_SFR_file, matched_SFR_file, separations, outlier='ssfr')
+
 #exit()
+
+def galaxies_redshift(cat_files, separation, nbins): #, colors):
+    """Distribution of host galaxies vs redshift
+
+    Args:
+        cat_files (_type_): _description_
+        colors (_type_): _description_
+    """
+    fig1,ax1=plt.subplots()
+    fig2,ax2=plt.subplots()
+    fig3,ax3=plt.subplots()
+
+    ax1.set_title('Distribution host galaxies vs redshift')
+    ax1.set_xlabel('Spectroscopic redshift (z)')
+    ax1.set_ylabel('counts')
+
+
+    ax2.set_title('Distribution SN vs redshift')
+    ax2.set_xlabel('Redshift (z)')
+    ax2.set_ylabel('counts')
+
+
+    ax3.set_title('Distribution vs difference of redshift')
+    ax3.set_xlabel('$\\Delta$Redshift ($\\Delta$z)')
+    ax3.set_ylabel('counts')
+
+    #plt.ylabel('restframe (g-i) colour (mag)')
+
+    bins_edges = np.linspace(0.01, 0.22, (nbins+1))
+    centers = bins_edges[:-1] + np.diff(bins_edges) / 2
+    for i, file in enumerate(cat_files):
+
+        cat = Table.read(file)
+
+        zspec = cat['Z'] #Spectroscopic redshift GAMA
+        ind = np.where(zspec>0)
+        #print(zspec.max())
+        z = cat['redshift'] #Spectroscopic redshift ZTF
+        hist, bins = np.histogram(zspec[ind], bins=nbins)
+        #plt.title('Star Formation Rate Function z = ')
+
+        #ax1.plot(bins_edges[:-1], hist, '.', label = f"sep = {separation[i]} arcsec")
+        ax1.hist(bins_edges[:-1], bins_edges, weights=hist,histtype='step',  label = f"sep = {separation[i]} arcsec")#, color = colors[i])
+        #ax1.stairs(hist-1, bins_edges,color=colors[i], label = f"sep = {separation[i]} arcsec")
+        #ax1.plot(centers, hist - 1, 'o--', color=colors[i], alpha=0.3)
+        ax1.legend()
+
+
+        #print(bin_edges)
+        hist, bins = np.histogram(z, bins=nbins)
+
+        #ax2.plot(bins_edges[:-1], hist, '.', label = f"sep = {separation[i]} arcsec")
+        ax2.hist(bins_edges[:-1], bins_edges, weights=hist,histtype='step', label = f"sep = {separation[i]} arcsec")# , color = colors[i])
+        #ax2.stairs(hist-1, bins_edges,color=colors[i], label = f"sep = {separation[i]} arcsec")
+        #ax2.plot(centers, hist - 1, 'o--', color=colors[i], alpha=0.3)
+        
+        ax2.legend()
+
+        if separation[i] == 1.5:
+            nbins = 10
+
+            diffz = np.abs(z[ind]-zspec[ind])
+            hist, bins = np.histogram(diffz, bins=nbins)
+            bins_edges = np.linspace(0.01, 0.22, (nbins+1))
+            #ax3.plot(bins_edges[:-1], hist, '.', label = f"sep = {separation[i]} arcsec")
+            ax3.hist(bins_edges[:-1], bins_edges, weights=hist,histtype='step', label = f"sep = {separation[i]} arcsec") #, color = colors[i])
+            #ax3.stairs(hist-1, bins_edges,color=colors[i], label = f"sep = {separation[i]} arcsec")
+            #ax3.plot(centers, hist - 1, 'o--', color=colors[i], alpha=0.3)
+        if separation[i] == 5:
+            nbins = 10
+
+            diffz = np.abs(z[ind]-zspec[ind])
+            hist, bins = np.histogram(diffz, bins=nbins)
+            bins_edges = np.linspace(0.01, 0.22, (nbins+1))
+            #ax3.plot(bins_edges[:-1], hist, '.', label = f"sep = {separation[i]} arcsec")
+            ax3.hist(bins_edges[:-1], bins_edges, weights=hist,histtype='step', label = f"sep = {separation[i]} arcsec") #, color = colors[i])
+            #ax3.stairs(hist-1, bins_edges,color=colors[i], label = f"sep = {separation[i]} arcsec")
+            #ax3.plot(centers, hist - 1, 'o--', color=colors[i], alpha=0.3)
+
+        ax3.legend()
+
+
+    fig1.savefig('plots/redshift/galaxies_redshift.png')
+    fig2.savefig('plots/redshift/SN_redshift.png')
+    fig3.savefig('plots/redshift/diff_redshift.png')
+
+    fig1.savefig('plots/redshift/pdf/galaxies_redshift.pdf')
+    fig2.savefig('plots/redshift/pdf/SN_redshift.pdf')
+    fig3.savefig('plots/redshift/pdf/diff_redshift.pdf')
+
+    #plt.show()
+
+c = ['b', 'g', 'r', 'orange']
+sep = [1.5, 5, 47]#,465]#[1.5, 5, 47]#, 465]
+matched_files = [f"crossmatches/positional/crossmatch_GAMA_ZTF_maxsep_{s}arcsec_dim2.fits" for s in sep]
+#galaxies_redshift(matched_files, sep, nbins=20)#, colors = c)
+#exit()
+
+def matches_around(cat_file1, cat_file2):
+    """Histogram of host galaxies arranged by separation of the SN.
+
+    Args:
+        cat_file1 (_type_): _description_
+        cat_file2 (_type_): _description_
+    """
+    cat1 = Table.read(cat_file1)
+    cat2 = Table.read(cat_file2)
+
+    radec1 = co.SkyCoord(cat1['RAcen'], cat1['Deccen'], unit='deg') # GAMA (ICRS): (ra, dec) in deg
+    radec2 = co.SkyCoord(cat2['ra']*u.deg, cat2['declination']*u.deg) # ZTF (ICRS): (ra, dec) in deg
+
+    a2b, b2a, sep, _ = radec1.search_around_sky(radec2, seplimit=50*u.arcsec)
+
+    fig,ax=plt.subplots()
+    bins = 35
+    ax.hist(sep.arcsec, bins=bins)
+    ax.set_title(f'Match around, max radius = 50", {bins} bins')
+    ax.set_xlabel('distance (arcsec)')
+    fig.savefig('plots/density_random_matches.png')
+
+
+    plt.show()
+
+#matches_around(gama_file, ztf_file)
+
 
 def separation_histogram(crossmatch_file, cosmology, nbins = 50):
 
@@ -1130,8 +1202,8 @@ def separation_histogram(crossmatch_file, cosmology, nbins = 50):
     fig2.set_figwidth(20)
     ax3.set_title('Histogram of onsky sepatarions (arcsec)')
     ax4.set_title('Histogram of physical sepatarions (kpc)')
-    ax3.set(xlabel = ('separation (arcsec)'), ylabel = ('Counts'), xlim = (0,50), yscale = 'log')
-    ax4.set(xlabel = ('separation (kpc)'), ylabel = ('Counts'), xlim = (0,40000), yscale = 'log')
+    ax3.set(xlabel = ('separation (arcsec)'), ylabel = ('Counts'), xlim = (0,10), yscale = 'log') #xlim = (0,50)
+    ax4.set(xlabel = ('separation (kpc)'), ylabel = ('Counts'), xlim = (0,20), yscale = 'log') #xlim = (0,40000)
 
     fig3, (ax5,ax6) = plt.subplots(1,2)
     fig3.set_figwidth(20)
@@ -1139,7 +1211,7 @@ def separation_histogram(crossmatch_file, cosmology, nbins = 50):
     ax5.set_title('kpc vs arcsec')
     ax6.set_title('kpc vs arcsec zoom')
     ax5.set(xlabel = ('separation (kpc)'), ylabel = ('separation (arcsec)'))#, ylim = (0,50))# yscale = 'log')
-    ax6.set(xlabel = ('separation (kpc)'), ylabel = ('separation (arcsec)'), xlim = (0,20), ylim = (0,10))# yscale = 'log')
+    ax6.set(xlabel = ('separation (kpc)'), ylabel = ('separation (arcsec)'), xlim = (0,20), ylim = (0,10))# yscale = 'log') # xlim = (0,20)
 
 
     cat = Table.read(crossmatch_file)
@@ -1208,6 +1280,7 @@ def separation_histogram(crossmatch_file, cosmology, nbins = 50):
     ax1.hist(bins_edges_arcsec[:-1], bins_edges_arcsec, weights=hist_arcsec, label = "sep arcsec")
     ax2.hist(bins_edges_kpc[:-1], bins_edges_kpc, weights=hist_kpc, label = "sep kpc")
 
+
     ax3.hist(bins_edges_arcsec[:-1], bins_edges_arcsec, weights=hist_arcsec, label = "sep arcsec")
     ax4.hist(bins_edges_kpc[:-1], bins_edges_kpc, weights=hist_kpc, label = "sep kpc")
 
@@ -1216,12 +1289,15 @@ def separation_histogram(crossmatch_file, cosmology, nbins = 50):
 
 
 
-    #fig1.savefig(f'plots/histograms_separation_2.jpg')
-    #fig2.savefig(f'plots/histograms_separation_zoom.jpg') #! For the zoom one I used nbins = 500 for the kpc
-    fig3.savefig('plots/kpc_vs_arcsec.jpg')
+    fig1.savefig(f'plots/separations/histograms_separation.jpg')
+    fig1.savefig(f'plots/separations/pdf/histograms_separation.pdf')
+    #fig2.savefig(f'plots/separations/histograms_separation_zoom.jpg') #! This is weird, I decided not to save them
+    #fig2.savefig(f'plots/separations/pdf/histograms_separation_zoom.pdf')
+    fig3.savefig('plots/separations/kpc_vs_arcsec.jpg')
+    fig3.savefig('plots/separations/pdf/kpc_vs_arcsec.pdf')
 
     plt.show()
-#separation_histogram("crossmatches/crossmatch_GAMA_ZTF_maxsep_465arcsec_dim2.fits", cosmo, nbins = 50)
+#separation_histogram("crossmatches/positional/crossmatch_GAMA_ZTF_maxsep_465arcsec_dim2.fits", cosmo, nbins = 500)
 #exit()
 def comparing_3d_onsky(crossmatch_file, cosmology):
 
@@ -1303,18 +1379,19 @@ def sanity_check_distances(crossmatch_file, cosmology):
     ax1.scatter(dSN_kpc, dgal_kpc)
     ax2.scatter(ID, np.abs(dgal_kpc-dSN_kpc))
     ax3.scatter(ID, np.abs(dgal_kpc-dSN_kpc))
-    fig1.savefig('plots/sanity_check_SNvsgal_distances.jpg')
     ax1.legend()
+    fig1.savefig('plots/separations/sanity_check_SNvsgal_distances.jpg')
+    fig1.savefig('plots/separations/pdf/sanity_check_SNvsgal_distances.pdf')
     plt.show()
-#sanity_check_distances("crossmatches/crossmatch_GAMA_ZTF_maxsep_465arcsec_dim2.fits", cosmo)
-
+#sanity_check_distances("crossmatches/positional/crossmatch_GAMA_ZTF_maxsep_465arcsec_dim2.fits", cosmo)
+#exit()
 
 def sersic_photometry(cat_file1, cat_file2, separations):
     
     for i, file in enumerate(cat_file2):
         #plot
         fig1, ax1 = plt.subplots()
-        ax1.set_title('sersic model vs aperture photometry') #! Change here things
+        ax1.set_title('sersic model vs aperture photometry')
         ax1.set(xlabel = ('GALFIT magnitude of Sersic model (mag)'), ylabel = ('aperture photometry (mag)'), xlim = (12,21), ylim = (12,21) )#, yscale = ('log'))
 
 
@@ -1363,12 +1440,13 @@ def sersic_photometry(cat_file1, cat_file2, separations):
 
         ax1.legend()
 
-        fig1.savefig(f'plots/sersic_photometry_comp_{separations[i]}_5levels.jpg')
+        fig1.savefig(f'plots/sersic/sersic_photometry_comp_{separations[i]}_5levels.jpg')
+        fig1.savefig(f'plots/sersic/pdf/sersic_photometry_comp_{separations[i]}_5levels.pdf')
 
-        plt.show()
+        #plt.show()
 
-matched_sersic_file = [f"crossmatches/join_colour_sersic_cat_matched{sep}_VIKING.fits" for sep in separations]
-gama_sersic_file = 'crossmatches/join_colour_sersic_cat_all_VIKING.fits'
+matched_sersic_file = [f"crossmatches/specifics/colour_sersic_matched{sep}_VIKING.fits" for sep in separations]
+gama_sersic_file = 'crossmatches/specifics/colour_sersic_all_VIKING.fits'
 #sersic_photometry(gama_sersic_file, matched_sersic_file, separations)
 
 def sersic_photometry_diff(cat_file1, cat_file2, separations, nbins = 50):
@@ -1381,7 +1459,7 @@ def sersic_photometry_diff(cat_file1, cat_file2, separations, nbins = 50):
 
         fig2, ax2 = plt.subplots()
         ax2.set_title('sersic model - aperture photometry')
-        ax2.set(xlabel = ('UberID'), ylabel = ('Difference'), ylim = (-5,5))#, yscale=('log'))#, xlim = (0,25))#, yscale = ('log'))
+        ax2.set(xlabel = ('Sersic Index (n$_Z$)'), ylabel = ('Difference'), ylim = (-3,3))#, yscale=('log'))#, xlim = (0,25))#, yscale = ('log'))
 
         fig3, ax3 = plt.subplots()
         ax3.set_title('Histogram sersic model - aperture photometry, host galaxies')
@@ -1395,7 +1473,7 @@ def sersic_photometry_diff(cat_file1, cat_file2, separations, nbins = 50):
         #constraints:
         z = cat1['Z']
         mstar = cat1['mstar']
-        ID = cat1['uberID']
+        ID = cat1['GALINDEX_Z']
 
         sersic_mag = cat1['GALMAG_Z']
         flux = cat1['flux_Zt']
@@ -1412,24 +1490,27 @@ def sersic_photometry_diff(cat_file1, cat_file2, separations, nbins = 50):
         photo_mag = photo_mag[constraint]
 
         ID = ID[constraint]
+        
+        ind = np.where((ID>0)&(ID<10))
 
         #constrain2 = np.where((np.abs(sersic_mag-photo_mag)<3))# | (sersic_mag<0.3*photo_mag))
         #sersic_mag = sersic_mag[constrain2]
         #photo_mag = photo_mag[constrain2]
 
-        diff = np.abs(sersic_mag-photo_mag)
+        diff = np.abs(sersic_mag[ind]-photo_mag[ind])
 
         hist, bins = np.histogram(diff[np.where(diff>0)], bins=nbins)
         ax1.hist(bins[:-1], bins, weights=hist, color = 'dodgerblue')
 
-        diff = sersic_mag-photo_mag
+        diff = sersic_mag[ind]-photo_mag[ind]
         number = np.linspace(0,len(diff), len(diff))
-        ax2.scatter(ID, diff, marker = '.', c = 'dodgerblue', alpha = 0.2)
+        ax2.scatter(ID[ind], diff, marker = '.', c = 'dodgerblue', alpha = 0.2)
 
 
 
         ##### HOST GALAXIES ####
-        ID = cat2['uberID']
+        ID = cat2['GALINDEX_Z']
+        ind = np.where((ID>0)&(ID<10))
 
         #mag
         sersic_mag = cat2['GALMAG_Z']
@@ -1437,21 +1518,34 @@ def sersic_photometry_diff(cat_file1, cat_file2, separations, nbins = 50):
         flux = cat2['flux_Zt']
         photo_mag = -2.5 * np.log10( flux ) + 8.9
 
-        diff = np.abs(sersic_mag-photo_mag)
+        diff = np.abs(sersic_mag[ind]-photo_mag[ind])
+        if separations[i] == 1.5:
+            hist, bins = np.histogram(diff[np.where(diff>0)], bins=5)
+            ax3.hist(bins[:-1], bins, weights=hist, color = 'r')
+        else:
+            hist, bins = np.histogram(diff[np.where(diff>0)], bins=10)
+            ax3.hist(bins[:-1], bins, weights=hist, color = 'r')
 
-        hist, bins = np.histogram(diff[np.where(diff>0)], bins=nbins)
-        ax3.hist(bins[:-1], bins, weights=hist, color = 'r')
-
-        diff = sersic_mag-photo_mag
+        diff = sersic_mag[ind]-photo_mag[ind]
         number = np.linspace(0,len(diff), len(diff))
-        ax2.scatter(ID, diff, marker = 'o', c = 'r')
+        ax2.scatter(ID[ind], diff, marker = 'o', c = 'r')
 
         #ax1.legend()
 
-        #fig1.savefig(f'plots/sersic_photometry_histo_diff_{separations[i]}.jpg')
-        #fig2.savefig(f'plots/sersic_photometry_diff_{separations[i]}_zoom.jpg')
-        fig3.savefig(f'plots/sersic_photometry_histo_diff_{separations[i]}_hostgalaxies_zoom.jpg')
+        cat3 = cat2[ind]
+        cat3['sersic-photometry'] = diff
+        cat3.write(f'crossmatches/specifics/sersic-photometry_sep{separations[i]}.fits', overwrite=True)
+
+        fig1.savefig(f'plots/sersic/sersic_photometry_histo_diff_{separations[i]}.jpg')
+        fig2.savefig(f'plots/sersic/sersic_photometry_diff_{separations[i]}_zoom.jpg')
+        fig3.savefig(f'plots/sersic/sersic_photometry_histo_diff_{separations[i]}_hostgalaxies_zoom.jpg')
+
+        fig1.savefig(f'plots/sersic/pdf/sersic_photometry_histo_diff_{separations[i]}.pdf')
+        fig2.savefig(f'plots/sersic/pdf/sersic_photometry_diff_{separations[i]}_zoom.pdf')
+        fig3.savefig(f'plots/sersic/pdf/sersic_photometry_histo_diff_{separations[i]}_hostgalaxies_zoom.pdf')
+
         plt.show()
 
-
+separations = [1.5,5]
+matched_sersic_file = [f"crossmatches/specifics/colour_sersic_matched{sep}_VIKING.fits" for sep in separations]
 sersic_photometry_diff(gama_sersic_file, matched_sersic_file, separations)
