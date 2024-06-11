@@ -23,3 +23,15 @@ print(science_cat['CATAID'][ind])
 
 cat2 = science_cat[ind]
 cat2.write('crossmatches/angles/135.fits', overwrite = True)
+
+ind = np.where((ang>59.9999)&(ang<60.001))
+print(science_cat['CATAID'][ind])
+
+cat2 = science_cat[ind]
+cat2.write('crossmatches/angles/60.fits', overwrite = True)
+
+ind = np.where((ang>29.9999)&(ang<30.001))
+print(science_cat['CATAID'][ind])
+
+cat2 = science_cat[ind]
+cat2.write('crossmatches/angles/30.fits', overwrite = True)

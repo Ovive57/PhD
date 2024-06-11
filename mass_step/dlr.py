@@ -6,17 +6,22 @@ import numpy as np
 #from plots import plot_color_mass
 
 # Load the combined table
-result_table = Table.read('nearby_galaxies_all_supernovae_with.fits')
+result_table = Table.read('crossmatches/specifics/colour_SFR_matched465.fits')
 
 cross_matched_table = Table(names=result_table.colnames + ['dDLR'], dtype=[result_table[col].dtype for col in result_table.colnames] + ['f8'])
 
 # Group the table by SN_ID
-sn_ids = unique(result_table, keys='objid')['objid']
-print('works')
-uber_ids = []
-dDLRs = []
+#sn_ids = unique(result_table, keys='objid')['objid']
+#print('works')
+#uber_ids = []
+#dDLRs = []
+
+sn_ids = result_table['objid']
 # Print the separations for each supernova
 for i, sn_id in enumerate(sn_ids):
+    print(i, sn_id)
+    continue
+    exit()
     sn_mask = result_table['objid'] == sn_id
     uberID = result_table['uberID'][sn_mask]
     separations = result_table['Separation_arcsec'][sn_mask]
@@ -32,7 +37,9 @@ for i, sn_id in enumerate(sn_ids):
     dDLR = separations/DLR
     print(dDLR)
     result_table2 = result_table[sn_mask]
-    result_table2['dDLR'] = dDLR
+    #result_table2['dDLR'][i] = dDLR
+    result_table3 = result_table[sn_mask]
+    #result_table3['dDLR'][i] = dDLR.min()
 
     ind = np.argmin(dDLR)
     uberID = uberID[ind]
@@ -41,9 +48,9 @@ for i, sn_id in enumerate(sn_ids):
     dDLRs.append(dDLR)
 
 
-print(len(uber_ids))
-print(len(dDLRs))
-print(len(result_table2))
+#print(len(uber_ids))
+#print(len(dDLRs))
+#print(len(result_table3))
 exit()
 #mask = [uber_id in uber_ids for uber_id in result_table['uberID']]
 #reduced_table = result_table[mask]

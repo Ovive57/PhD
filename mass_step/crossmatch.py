@@ -161,7 +161,7 @@ gama_SFR_file = "data/MagPhysv06.fits" # 'CATAID', 'Z', 'sSFR_0_1Gyr_best_fit', 
 
 #separations = [1.5]#,5,47,465]
 #matched_file = [f"crossmatches/crossmatch_GAMA_ZTF_maxsep_{sep}arcsec_dim2.fits" for sep in separations] # 'uberID', 'RAcen', 'Deccen', 'CATAID', 'Z', 'ra', 'declination', 'redshift'
-matched_file = "crossmatches/positional/crossmatch_GAMA_ZTF_maxsep_47arcsec_dim2.fits" # 'uberID', 'RAcen', 'Deccen', 'CATAID', 'Z', 'ra', 'declination', 'redshift'
+matched_file = "crossmatches/positional/crossmatch_GAMA_ZTF_maxsep_465arcsec_dim2.fits" # 'uberID', 'RAcen', 'Deccen', 'CATAID', 'Z', 'ra', 'declination', 'redshift'
 
 #! I need 3 catalogues:
     #! plot 1: (colour - mass) + host(colour - mass) EASY, DONE
@@ -175,13 +175,13 @@ sersic_cat_VIKING = Table.read(gama_sersic_file_VIKING)
 SFR_cat = Table.read(gama_SFR_file)
 matched_cat = Table.read(matched_file)
 
-selected_science = science_cat[['uberID', 'RAcen', 'Deccen', 'CATAID', 'flux_it', 'flux_il', 'flux_err_it', 'flux_gt', 'flux_gl', 'flux_err_gt', 'flux_Zt', 'flux_Zl', 'flux_err_Zt']]
+selected_science = science_cat[['uberID', 'RAcen', 'Deccen', 'CATAID','R50', 'axrat', 'ang', 'flux_it', 'flux_il', 'flux_err_it', 'flux_gt', 'flux_gl', 'flux_err_gt', 'flux_Zt', 'flux_Zl', 'flux_err_Zt']]
 selected_mass = mass_cat[['uberID', 'Z', 'logmstar', 'dellogmstar', 'mstar', 'delmstar', 'gminusi', 'delgminusi', 'gminusi_stars', 'delgminusi_stars', 'uminusr', 'deluminusr']]
 selected_sersic_SDSS = sersic_cat_SDSS[['CATAID', 'RA', 'DEC', 'GALINDEX_i', 'GALINDEX_g', 'GALINDEX_u', 'GALINDEX_r', 'GALMAG_i', 'GALMAG_g', 'GALMAG_u', 'GALMAG_r']]
 selected_sersic_VIKING = sersic_cat_VIKING[['CATAID', 'RA', 'DEC', 'GALINDEX_Z', 'GALMAG_Z']]
 selected_SFR = SFR_cat[['CATAID', 'sSFR_0_1Gyr_best_fit', 'SFR_0_1Gyr_best_fit']]
 
-selected_matched = matched_cat[['uberID', 'ra', 'declination', 'redshift', 'sep_arcsec']]
+selected_matched = matched_cat[['uberID', 'ra', 'declination', 'redshift','objid', 'sep_arcsec']]
 
 
 # plot 1:
@@ -189,7 +189,7 @@ selected_matched = matched_cat[['uberID', 'ra', 'declination', 'redshift', 'sep_
 colour_mass_cat = selected_mass
 colour_mass_cat.write('crossmatches/specifics/colour_mass_all.fits', overwrite = True)
 matched_color_mass_cat = join(selected_mass, selected_matched, keys='uberID')
-matched_color_mass_cat.write('crossmatches/specifics/colour_mass_matched47.fits', overwrite = True)
+matched_color_mass_cat.write('crossmatches/specifics/colour_mass_matched465.fits', overwrite = True)
 
 # plot 2:
 
@@ -198,14 +198,14 @@ colour_sersic_cat_viking = join(colour_sersic_cat_viking1, selected_sersic_VIKIN
 colour_sersic_cat_viking.write('crossmatches/specifics/colour_sersic_all_VIKING.fits', overwrite = True)
 
 matched_colour_sersic_cat_viking = join(colour_sersic_cat_viking, selected_matched, keys='uberID')
-matched_colour_sersic_cat_viking.write('crossmatches/specifics/colour_sersic_matched47_VIKING.fits', overwrite = True)
+matched_colour_sersic_cat_viking.write('crossmatches/specifics/colour_sersic_matched465_VIKING.fits', overwrite = True)
 
 colour_sersic_cat_sdss1 = join(selected_science, selected_mass, keys='uberID')
 colour_sersic_cat_sdss = join(colour_sersic_cat_sdss1, selected_sersic_SDSS, keys='CATAID')
 colour_sersic_cat_sdss.write('crossmatches/specifics/colour_sersic_all_SDSS.fits', overwrite = True)
 
 matched_colour_sersic_cat_sdss = join(colour_sersic_cat_sdss, selected_matched, keys='uberID')
-matched_colour_sersic_cat_sdss.write('crossmatches/specifics/colour_sersic_matched47_SDSS.fits', overwrite = True)
+matched_colour_sersic_cat_sdss.write('crossmatches/specifics/colour_sersic_matched465_SDSS.fits', overwrite = True)
 
 
 # plot 3:
@@ -215,4 +215,4 @@ colour_SFR_cat = join(colour_SFR_cat1, selected_SFR, keys='CATAID')
 colour_SFR_cat.write('crossmatches/specifics/colour_SFR_all.fits', overwrite = True)
 
 matched_colour_SFR_cat = join(colour_SFR_cat, selected_matched, keys='uberID')
-matched_colour_SFR_cat.write('crossmatches/specifics/colour_SFR_matched47.fits', overwrite = True)
+matched_colour_SFR_cat.write('crossmatches/specifics/colour_SFR_matched465.fits', overwrite = True)
