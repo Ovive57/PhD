@@ -87,13 +87,25 @@ def dDLR(search_radec, galaxy_radec, galaxy_major, galaxy_minor, galaxy_angle_ra
 #### DATA ####
 
 result_table = Table.read('data/gkvScienceCatv02.fits')
+SN_table = Table.read('data/tns_SNIa_20240424_copy.csv')
 
+## GALAXIES
 RA_gama = result_table['RAcen']
 Dec_gama = result_table['Deccen']
 ID = result_table['CATAID']
 axrat = result_table['axrat']
-position_angle = result_table['ang']
-major = result_table['R50']
+position_angle_gama = result_table['ang']
+major_gama = result_table['R50']
+
+## SN
+RA_sn = SN_table['ra']
+Dec_sn = SN_table['declination']
+sn_coords = co.SkyCoord(RA_sn*u.deg, Dec_sn*u.deg)
+
+
+#####################################################################################################################################################
+####################### Plot of a selection of galaxies and a grid of SN to test the dDLR formula ###################################################
+#####################################################################################################################################################
 
 #### DATA SELECTION ####
 ra_min = 176
@@ -106,14 +118,14 @@ ind = np.where((RA_gama>ra_min)&(RA_gama<ra_max)&(Dec_gama>1.625)&(Dec_gama<1.63
 ra_galaxies = RA_gama[ind]#[180.,182]
 dec_galaxies = Dec_gama[ind]#[0.,1.]
 
-position_angles = position_angle[ind] - 90 #! Corrected from GAMA to DLR
-major_axis = major[ind]
+position_angles = position_angle_gama[ind] - 90 #! Corrected from GAMA to DLR
+major_axis = major_gama[ind]/3600 #From arcsecs to deg
 axrat = axrat[ind]
 minor_axis = axrat*major_axis # axial ratio = minor/major -> minor = axial ratio * major
 
 #### Random grid SN ####
 
-ra_grid, dec_grid = np.meshgrid(np.linspace(ra_min, ra_max, 200), np.linspace(dec_min, dec_max, 200))
+ra_grid, dec_grid = np.meshgrid(np.linspace(ra_min, ra_max, 1500), np.linspace(dec_min, dec_max, 1500))
 
 #print(np.shape(ra_grid))
 
@@ -179,13 +191,14 @@ plt.imshow(image, origin='lower', extent=[ra_min, ra_max, dec_min, dec_max])
 for i, (ra, dec) in enumerate(zip(ra_galaxies, dec_galaxies)):
     galaxy_major = major_axis[i]
     galaxy_minor = minor_axis[i]
+    print(galaxy_major)
 
     angle = position_angles[i]
 
     # Adjust the angle to counteract the x-axis inversion
     adjusted_angle = 180 - angle
     # Create an ellipse patch
-    ellipse = Ellipse(xy=(ra, dec), width=galaxy_major*2/3600, height=galaxy_minor*2/3600, angle=adjusted_angle, edgecolor='black', facecolor=colors[i], alpha=0.5)
+    ellipse = Ellipse(xy=(ra, dec), width=galaxy_major*2, height=galaxy_minor*2, angle=adjusted_angle, edgecolor='black', facecolor=colors[i], alpha=0.5)
     #print(angle)
 
     plt.gca().add_patch(ellipse)
@@ -199,70 +212,33 @@ plt.title('Galaxies and Associated Supernovae')
 
 plt.gca().invert_xaxis()
 plt.show()
-
 exit()
-
-
-
-# Plot the SN points colored by the closest galaxy
-#plt.imshow( closest_galaxy, extent=(ra_max,ra_min,dec_min,dec_max), cmap='tab10', aspect='auto' )
-plt.scatter(ra_grid, dec_grid, c=closest_galaxy, cmap='tab10', s=1, alpha=0.5)
-
-
-# Plot the galaxies
-for i in range(len(ra_galaxies)):
-    plt.scatter(ra_galaxies[i], dec_galaxies[i], s=50, edgecolors='black')
-
-#plt.colorbar(label='Closest Galaxy')
-plt.xlabel('RA (deg)')
-plt.ylabel('Dec (deg)')
-plt.xlim(ra_max, ra_min)
-plt.ylim(dec_min, dec_max)
-plt.title('Closest Galaxy by dDLR')
-plt.show()
-
-exit()
-
-for i in range(len(ra_galaxies)):
-    ra = ra_galaxies[i]
-    dec = dec_galaxies[i]
-    size = sizes[i]
-    bovera = boveras[i]
+#####################################################################################################################################################
+################################################ Calculate the dDLR for my actual galaxies and SN ###################################################
+#####################################################################################################################################################
+position_angles = position_angle_gama - 90 #! Corrected from GAMA to DLR
+major_axis = major_gama/3600 #From arcsecs to deg
+minor_axis = axrat*major_axis # axial ratio = minor/major -> minor = axial ratio * major
+min_dDLR = np.full(RA_sn.shape, np.inf)
+start = time.time()
+for i, (ra, dec) in enumerate(zip(RA_gama, Dec_gama)):
+    #print(i)
     position_angle = position_angles[i]
 
-    galaxy_major, galaxy_minor = size, bovera * size
-    galaxy_angle = np.radians(position_angle - 90)
-
+    galaxy_major, galaxy_minor = major_axis[i], minor_axis[i]
+    galaxy_angle = np.radians(position_angle)
     galaxy_radec = co.SkyCoord(ra=ra, dec=dec, unit='deg')
-    search_radec = galaxy_radec.spherical_offsets_by(-dx * u.arcsec, dy * u.arcsec)
 
-    result, da, db = dDLR(search_radec, galaxy_radec, galaxy_major, galaxy_minor, galaxy_angle)
+    dDLR_values,da,db = dDLR(sn_coords, galaxy_radec, galaxy_major, galaxy_minor, galaxy_angle)
+    #print(np.shape(da))
+    #print(np.shape(dDLR))
+    angular_separation = np.sqrt((da**2)+(db**2))
 
-    plt.scatter(search_radec.ra.deg, search_radec.dec.deg, 10, result, label=f'Galaxy {i+1}')
-    plt.scatter(galaxy_radec.ra.deg, galaxy_radec.dec.deg, 50, label=f'Galaxy {i+1} center')
-
-plt.colorbar(label='dDLR')
-plt.xlabel('RA (deg)')
-plt.ylabel('Dec (deg)')
-plt.legend()
-plt.title('DLR Contours for Multiple Galaxies')
-plt.show()
-
-exit()
-
-search_radec = galaxy_radec.spherical_offsets_by( -dx*u.arcsec, dy*u.arcsec) 
-
-
-
-
-
-
-result, da, db = dDLR( search_radec, galaxy_radec, galaxy_major, galaxy_minor, galaxy_angle )
-
-plt.scatter( search_radec.ra.deg, search_radec.dec.deg, 10, result )
-plt.colorbar()
-plt.scatter( galaxy_radec.ra.deg, galaxy_radec.dec.deg, 50, label='galaxy' )
-
-plt.gca().invert_xaxis()
-plt.legend()
-plt.show()
+    mask = angular_separation<15
+    valid_mask = dDLR_values<min_dDLR
+    combined_mask = mask & valid_mask
+    #closest_galaxy[combined_mask] = i
+    min_dDLR[combined_mask] = dDLR_values[combined_mask]
+end = time.time()
+print(min_dDLR)
+print('time = ',end-start)
