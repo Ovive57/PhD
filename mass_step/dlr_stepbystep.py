@@ -44,7 +44,8 @@ def draw_ellipses(scale_factor, major_axis, minor_axis, position_angle, ra_gal, 
     # position_angle = position_angle_region
     major_axis = major_axis/3600 #arcsec to deg
     minor_axis = minor_axis/3600 #arcsec to deg
-    ''' PLOTTING WITH THE DLR DIRECTLY
+
+    ### PLOTTING WITH THE DLR DIRECTLY
     DLR_ellipse = major_axis * minor_axis / np.sqrt((major_axis * np.sin(xi_rad))**2 + (minor_axis * np.cos(xi_rad))**2)
 
 
@@ -59,25 +60,25 @@ def draw_ellipses(scale_factor, major_axis, minor_axis, position_angle, ra_gal, 
     y_2 = r_2 * np.sin(xi_rad)
 
     # Rotate the ellipse by the position angle of the galaxy
-    x1_rotated = x_1 * np.cos(position_angle) - y_1 * np.sin(position_angle) + ra_gal
-    y1_rotated = x_1 * np.sin(position_angle) + y_1 * np.cos(position_angle) + dec_gal
+    x1_rotated = x_1 * np.cos(position_angle) + y_1 * np.sin(position_angle) + ra_gal
+    y1_rotated = - x_1 * np.sin(position_angle) + y_1 * np.cos(position_angle) + dec_gal
 
-    x2_rotated = x_2 * np.cos(position_angle) - y_2 * np.sin(position_angle) + ra_gal
-    y2_rotated = x_2 * np.sin(position_angle) + y_2 * np.cos(position_angle) + dec_gal
-    '''
+    x2_rotated = x_2 * np.cos(position_angle) + y_2 * np.sin(position_angle) + ra_gal
+    y2_rotated = - x_2 * np.sin(position_angle) + y_2 * np.cos(position_angle) + dec_gal
+
     # Plot the results
 
-    #ax.plot(x1_rotated, y1_rotated, color='red', linestyle='-')#, label = 'dDLR = 1/20')
-    #ax.plot(x2_rotated, y2_rotated, color='blue', linestyle='--')#, label = 'dDLR = 4/20')
+    ax.plot(x1_rotated, y1_rotated, color='red', linestyle='-')#, label = 'dDLR = 1/20')
+    ax.plot(x2_rotated, y2_rotated, color='blue', linestyle='--')#, label = 'dDLR = 4/20')
 
     ax.scatter(ra_gal, dec_gal, marker = 'x', color = 'orange')#, label = 'galaxy') #! Can I put the label only once even if I do a for loop? If label is, put it in.
-
+    '''
     # Ellipse with matplotlib is shorter and maybe more efficient
     ellipse = Ellipse(xy=(ra_gal, dec_gal), width=scale_factor[0]*major_axis*2, height=scale_factor[0]*minor_axis*2, angle=np.degrees(position_angle), edgecolor='red',linestyle = '--', fill = False)
     plt.gca().add_patch(ellipse)
     ellipse = Ellipse(xy=(ra_gal, dec_gal), width=scale_factor[1]*major_axis*2, height=scale_factor[1]*minor_axis*2, angle=np.degrees(position_angle), edgecolor='blue',linestyle = '--', fill = False)
     plt.gca().add_patch(ellipse)
-
+    '''
     return ax
 
 def get_sn_angle(ra_gal, dec_gal, major_axis, position_angle, ra_sn, dec_sn, host=False, plot=True, ax = None, plot_angle = False):
@@ -101,9 +102,10 @@ def get_sn_angle(ra_gal, dec_gal, major_axis, position_angle, ra_sn, dec_sn, hos
     major_axis = np.array(major_axis)/3600 #arcsec to deg
 
     if plot:
-        major_x1 = ra_gal + major_axis * np.cos(position_angle)
+        major_x1 = ra_gal - major_axis * np.cos(position_angle)
+        major_x2 = ra_gal + major_axis * np.cos(position_angle)
+
         major_y1 = dec_gal + major_axis * np.sin(position_angle)
-        major_x2 = ra_gal - major_axis * np.cos(position_angle)
         major_y2 = dec_gal - major_axis * np.sin(position_angle)
         ax.plot([major_x1, major_x2], [major_y1, major_y2], '-', color='red', zorder=100)
 
@@ -113,7 +115,7 @@ def get_sn_angle(ra_gal, dec_gal, major_axis, position_angle, ra_sn, dec_sn, hos
     delta_dec = dec_sn - dec_gal
 
     angle_from_ra = np.arctan2(delta_dec, delta_ra) #angle in radians already
-    angle_from_major = (position_angle - angle_from_ra)
+    angle_from_major = (position_angle + angle_from_ra) # Because of how angles move, they move in opposite directions so instead of subtracting we add
 
     x_mid = (ra_gal + ra_sn) / 2
     y_mid = (dec_gal + dec_sn) / 2
@@ -138,7 +140,7 @@ def get_sn_angle(ra_gal, dec_gal, major_axis, position_angle, ra_sn, dec_sn, hos
         x2_dlr_vector = ra_gal + (np.cos(angle_from_ra))/3600
         y2_dlr_vector = dec_gal + (np.sin(angle_from_ra))/3600
 
-        ax.plot([x1_dlr_vector,x2_dlr_vector], [y1_dlr_vector,y2_dlr_vector], linestyle='-', color = 'deeppink')
+        #ax.plot([x1_dlr_vector,x2_dlr_vector], [y1_dlr_vector,y2_dlr_vector], linestyle='-', color = 'deeppink')
         ax.annotate(f'{np.degrees(angle_from_ra):.1f}°', xy=(x_mid+1, y_mid+1), color='deeppink', fontsize=12)
     return angle_from_major
 
@@ -167,7 +169,8 @@ def dDLR_ned(search_radec, galaxy_radec, galaxy_major, galaxy_minor, galaxy_angl
     # now rotate these dx/dy to match the galaxy angle:
     cos_gal_ang, sin_gal_ang = np.cos(galaxy_angle_rad), np.sin(galaxy_angle_rad)
     # this is just the ordinary rotation matrix
-    da, db = cos_gal_ang*dx + sin_gal_ang*dy, -sin_gal_ang*dx + cos_gal_ang*dy
+    #! I changed again the signs, we are going the other way now
+    da, db = cos_gal_ang*dx - sin_gal_ang*dy, +sin_gal_ang*dx + cos_gal_ang*dy
     #! note this is mathematicians and not astronomers angle
     # now da and db are separations in arcsec in the coord system of the semimaj/minor axes.
 
@@ -209,13 +212,13 @@ def get_dDLR(ra_gal, dec_gal, position_angle_gal, major_gal, minor_gal, ra_sn, d
         #x2_dlr_vector = x2_dlr * np.cos(position_angle_gal) - y2_dlr * np.sin(position_angle_gal) + ra_gal
         #y2_dlr_vector = x2_dlr * np.sin(position_angle_gal) + y2_dlr * np.cos(position_angle_gal) + dec_gal
         unit_dDLR = DLR #! It is 1 DLR
-        x2_dlr_vector = ra_gal + (unit_dDLR * np.cos(position_angle_gal-phi))/3600
-        y2_dlr_vector = dec_gal + (unit_dDLR * np.sin(position_angle_gal-phi))/3600
+        x2_dlr_vector = ra_gal + (unit_dDLR * np.cos(phi-position_angle_gal))/3600
+        y2_dlr_vector = dec_gal + (unit_dDLR * np.sin(phi-position_angle_gal))/3600
         ax.plot([x1_dlr_vector,x2_dlr_vector], [y1_dlr_vector,y2_dlr_vector], linestyle='-', color = 'black')
 
         unit_dDLR_Ned = DLR_ned #! It is 1 DLR
-        x2_dlr_vector = ra_gal + (unit_dDLR_Ned * np.cos(position_angle_gal-phi))/3600
-        y2_dlr_vector = dec_gal + (unit_dDLR_Ned * np.sin(position_angle_gal-phi))/3600
+        x2_dlr_vector = ra_gal + (unit_dDLR_Ned * np.cos(phi - position_angle_gal))/3600
+        y2_dlr_vector = dec_gal + (unit_dDLR_Ned * np.sin(phi - position_angle_gal))/3600
         ax.plot([x1_dlr_vector,x2_dlr_vector], [y1_dlr_vector,y2_dlr_vector], linestyle='-', color = 'deeppink')
 
     return dDLR
@@ -401,8 +404,8 @@ img = mpimg.imread('deleteme.jpeg')
 
 plt.imshow(img, extent=[max_RA, min_RA, max_Dec, min_Dec])
 
-legacy_survey_table = get_lsdr10_cat('deleteme', center_RA, center_Dec, radius_deg, overwrite=True)
-hdu = fits.open('deleteme.ls_dr10.cat.fits')
+#legacy_survey_table = get_lsdr10_cat('deleteme', center_RA, center_Dec, radius_deg, overwrite=True)
+#hdu = fits.open('deleteme.ls_dr10.cat.fits')
 #print(hdu.info())
 #image_data = hdu.data
 #print(image_data)
@@ -412,6 +415,11 @@ hdu = fits.open('deleteme.ls_dr10.cat.fits')
 #ax1.imshow(image_data, origin='lower', extent=[min_RA, max_RA, min_Dec, max_Dec])
 
 # The two concentric ellipses for all galaxies in the region:
+#########################################
+#! TO TEST
+#!position_angle_region = [np.radians(-45) for i in range(len(position_angle_region))]
+#!print(np.degrees(position_angle_region))
+#########################################
 
 for i,pos in enumerate(RA_galaxies_region):
     ax1 = draw_ellipses([1, 4], major_galaxies_region[i], minor_galaxies_region[i], position_angle_region[i], RA_galaxies_region[i], Dec_galaxies_region[i], ax1)
@@ -436,6 +444,7 @@ position_angle_host = position_angle_region[ind_host_galaxy]
 
 # PLOT the host galaxy in the same plot as the rest of the galaxies
 ax1.scatter(center_RA, center_Dec, label = 'SN', color = 'deeppink')
+print("SN coordinates = ",center_RA, center_Dec)
 ax1.scatter(RA_host_galaxy, Dec_host_galaxy,color='green', marker = '^', label = 'host galaxy' )
 plt.legend()
 plt.show()
