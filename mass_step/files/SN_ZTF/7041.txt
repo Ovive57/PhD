@@ -1,0 +1,10 @@
+Number of galaxies: 55
+Number of uber galaxies: 55
+Number of SNe: 55
+Number of classic dDLRs: 55
+Number of rotated dDLRs: 55
+Number of classic times: 55
+Number of rotated times: 55
+Total time: 757.9225461483002 s
+Total time classic: 0.07858085632324219 s
+Total time rotated: 0.08711743354797363 s

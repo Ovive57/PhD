@@ -1,0 +1,24 @@
+Number of galaxies: 2
+Number of SNe: 2
+Number of classic dDLRs: 2
+Number of rotated dDLRs: 2
+Number of classic times: 2
+Number of rotated times: 2
+Time: 13.838088274002075 s
+Number of galaxies: 2
+Number of SNe: 2
+Number of classic dDLRs: 2
+Number of rotated dDLRs: 2
+Number of classic times: 2
+Number of rotated times: 2
+Time: 12.199737787246704 s
+Number of galaxies: 2
+Number of uber galaxies: 2
+Number of SNe: 2
+Number of classic dDLRs: 2
+Number of rotated dDLRs: 2
+Number of classic times: 2
+Number of rotated times: 2
+Total time: 17.86596441268921 s
+Total time classic: 0.00304412841796875 s
+Total time rotated: 0.0037839412689208984 s
