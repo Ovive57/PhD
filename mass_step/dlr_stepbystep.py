@@ -4,19 +4,29 @@
 import os
 import numpy as np
 import random
+import time
 
+# Plots
 from matplotlib import pyplot as plt
 from matplotlib.patches import Ellipse
 import style
 
+# Astropy
 from astropy.table import Table
 from astropy import coordinates as co, units as u
 from astropy.io import fits
 
+# Legacy Survey catalogs
 import pyvo
-import urllib
 
+# Legacy survey images
+import urllib
+from PIL import Image
+import requests
+
+# Debugging
 import ipdb #*ipdb.set_trace()
+
 # Constants
 #seed = random.seed(25)
 
@@ -48,7 +58,6 @@ def draw_ellipses(scale_factor, major_axis, minor_axis, position_angle, ra_gal, 
     ### PLOTTING WITH THE DLR DIRECTLY
     DLR_ellipse = major_axis * minor_axis / np.sqrt((major_axis * np.sin(xi_rad))**2 + (minor_axis * np.cos(xi_rad))**2)
 
-
     # Adjust the radius for d = 1 and d = 4
     r_1 = scale_factor[0] * DLR_ellipse
     r_2 = scale_factor[1] * DLR_ellipse
@@ -72,13 +81,7 @@ def draw_ellipses(scale_factor, major_axis, minor_axis, position_angle, ra_gal, 
     ax.plot(x2_rotated, y2_rotated, color='blue', linestyle='--')#, label = 'dDLR = 4/20')
 
     ax.scatter(ra_gal, dec_gal, marker = 'x', color = 'orange')#, label = 'galaxy') #! Can I put the label only once even if I do a for loop? If label is, put it in.
-    '''
-    # Ellipse with matplotlib is shorter and maybe more efficient
-    ellipse = Ellipse(xy=(ra_gal, dec_gal), width=scale_factor[0]*major_axis*2, height=scale_factor[0]*minor_axis*2, angle=np.degrees(position_angle), edgecolor='red',linestyle = '--', fill = False)
-    plt.gca().add_patch(ellipse)
-    ellipse = Ellipse(xy=(ra_gal, dec_gal), width=scale_factor[1]*major_axis*2, height=scale_factor[1]*minor_axis*2, angle=np.degrees(position_angle), edgecolor='blue',linestyle = '--', fill = False)
-    plt.gca().add_patch(ellipse)
-    '''
+
     return ax
 
 def get_sn_angle(ra_gal, dec_gal, major_axis, position_angle, ra_sn, dec_sn, host=False, plot=True, ax = None, plot_angle = False):
@@ -122,8 +125,8 @@ def get_sn_angle(ra_gal, dec_gal, major_axis, position_angle, ra_sn, dec_sn, hos
     #plt.annotate(f'{np.degrees(angle_from_ra):.1f}°', xy=(x_mid+0.0002, y_mid), color='purple', fontsize=12) #plot the angle from RA
     if plot and host:
         ax.annotate(f'{np.degrees(angle_from_major):.1f}°', xy=(x_mid, y_mid), color='red', fontsize=12) #plot the angle from major axis
-        print(f"The angle from the major axis is {np.degrees(angle_from_major):.1f}°, the angle from the RA axis is {np.degrees(angle_from_ra):.1f}° and the position angle of the galaxy is {np.degrees(position_angle):.1f}°")
-    #angle_from_major = round(angle_from_major, 2)
+        #print(f"The angle from the major axis is {np.degrees(angle_from_major):.1f}°, the angle from the RA axis is {np.degrees(angle_from_ra):.1f}° and the position angle of the galaxy is {np.degrees(position_angle):.1f}°")
+
 
     if plot_angle:
         x1_dlr_vector = ra_gal
@@ -144,7 +147,7 @@ def get_sn_angle(ra_gal, dec_gal, major_axis, position_angle, ra_sn, dec_sn, hos
         ax.annotate(f'{np.degrees(angle_from_ra):.1f}°', xy=(x_mid+1, y_mid+1), color='deeppink', fontsize=12)
     return angle_from_major
 
-def dDLR_ned(search_radec, galaxy_radec, galaxy_major, galaxy_minor, galaxy_angle_rad):
+def get_dDLR_rotated(search_radec, galaxy_radec, galaxy_major, galaxy_minor, galaxy_angle_rad, ax=None, plot = True):
 
     """Calculates the dDLR between a galaxy and a SN without worrying about the angle between the galaxy and the SN
 
@@ -159,7 +162,7 @@ def dDLR_ned(search_radec, galaxy_radec, galaxy_major, galaxy_minor, galaxy_angl
         dDLR (float): dDLR between the object and the galaxy
         da, db (floats): distances to the object in the coordinates of the semi-major and semi-minor axis
     """
-
+    start = time.time()
     # work out the RA/dec offsets from search pos to galaxy
     alpha, delta = search_radec.spherical_offsets_to(galaxy_radec)
 
@@ -169,14 +172,35 @@ def dDLR_ned(search_radec, galaxy_radec, galaxy_major, galaxy_minor, galaxy_angl
     # now rotate these dx/dy to match the galaxy angle:
     cos_gal_ang, sin_gal_ang = np.cos(galaxy_angle_rad), np.sin(galaxy_angle_rad)
     # this is just the ordinary rotation matrix
-    #! I changed again the signs, we are going the other way now
-    da, db = cos_gal_ang*dx - sin_gal_ang*dy, +sin_gal_ang*dx + cos_gal_ang*dy
+    da, db = cos_gal_ang*dx - sin_gal_ang*dy, + sin_gal_ang*dx + cos_gal_ang*dy
     #! note this is mathematicians and not astronomers angle
     # now da and db are separations in arcsec in the coord system of the semimaj/minor axes.
 
     dDLR = np.sqrt((da / galaxy_major)**2. + (db / galaxy_minor)**2. )
+    end = time.time()
+    #! Change this when I discover why:
+    #print(f'shape dDLR = {np.shape(dDLR)}')
+    dDLR = dDLR.min()
 
-    return dDLR, da, db
+    sep = np.sqrt(da**2 + db**2)
+    DLR = sep/dDLR
+    phi = np.arctan2(db,da)
+    phi2 = np.arcsin(db/sep) # This put the angle always in the first and forth quadrant (-90° to 90°)
+    phi3 = np.arccos(da/sep) # This put the angle always in the first and second quadrant (0° to 180°)
+
+    #print(f' Rotated axis angle = {np.degrees(phi):.1f}°, other angle = {np.degrees(phi2):.1f}°, other angle = {np.degrees(phi3):.1f}°')
+    ra_gal = galaxy_radec.ra.deg
+    dec_gal = galaxy_radec.dec.deg
+    if plot:
+        unit_dDLR = DLR #! It is 1 DLR
+        x1_dlr_vector = ra_gal
+        y1_dlr_vector = dec_gal
+        x2_dlr_vector = ra_gal + (unit_dDLR * np.cos(phi - galaxy_angle_rad + np.pi))/3600 # I added 180° to have the angle in the good quadrant
+        y2_dlr_vector = dec_gal + (unit_dDLR * np.sin(phi - galaxy_angle_rad + np.pi))/3600
+        ax.plot([x2_dlr_vector,x1_dlr_vector], [y2_dlr_vector,y1_dlr_vector], linestyle='-', color = 'deeppink')
+
+        print(f'rotated axis dDLR calculation took {end-start} seconds')
+    return dDLR, da, db, end-start
 
 def get_dDLR(ra_gal, dec_gal, position_angle_gal, major_gal, minor_gal, ra_sn, dec_sn, ax=None, plot = True):
     """Get the dDLR with the classic method
@@ -194,34 +218,25 @@ def get_dDLR(ra_gal, dec_gal, position_angle_gal, major_gal, minor_gal, ra_sn, d
     Returns:
         float64: the dDLR of the galaxy with the SN
     """
+    start = time.time()
     gal_radec = co.SkyCoord(ra_gal, dec_gal, unit='deg')
     sn_radec = co.SkyCoord(ra_sn, dec_sn, unit = 'deg')
     sep = gal_radec.separation(sn_radec).arcsec
 
     phi = get_sn_angle(ra_gal, dec_gal, major_gal, position_angle_gal, ra_sn, dec_sn, host=False, plot=False, plot_angle=False)
     DLR = (major_gal*minor_gal)/(np.sqrt((major_gal*np.sin(phi))**2+(minor_gal*np.cos(phi))**2)) #major and minor are in arcsec
-    dDLR_Ned_value = dDLR_ned(sn_radec, gal_radec,major_gal, minor_gal, position_angle_gal)[0]
-    DLR_ned = sep/dDLR_Ned_value
+
     dDLR = sep/DLR
+    end = time.time()
     if plot:  #! HERE is the plot of the vector
         x1_dlr_vector = ra_gal
         y1_dlr_vector = dec_gal
-        #x2_dlr = dDLR * np.cos(phi)
-        #y2_dlr = dDLR * np.sin(phi)
-
-        #x2_dlr_vector = x2_dlr * np.cos(position_angle_gal) - y2_dlr * np.sin(position_angle_gal) + ra_gal
-        #y2_dlr_vector = x2_dlr * np.sin(position_angle_gal) + y2_dlr * np.cos(position_angle_gal) + dec_gal
         unit_dDLR = DLR #! It is 1 DLR
         x2_dlr_vector = ra_gal + (unit_dDLR * np.cos(phi-position_angle_gal))/3600
         y2_dlr_vector = dec_gal + (unit_dDLR * np.sin(phi-position_angle_gal))/3600
         ax.plot([x1_dlr_vector,x2_dlr_vector], [y1_dlr_vector,y2_dlr_vector], linestyle='-', color = 'black')
-
-        unit_dDLR_Ned = DLR_ned #! It is 1 DLR
-        x2_dlr_vector = ra_gal + (unit_dDLR_Ned * np.cos(phi - position_angle_gal))/3600
-        y2_dlr_vector = dec_gal + (unit_dDLR_Ned * np.sin(phi - position_angle_gal))/3600
-        ax.plot([x1_dlr_vector,x2_dlr_vector], [y1_dlr_vector,y2_dlr_vector], linestyle='-', color = 'deeppink')
-
-    return dDLR
+        print(f'classic dDLR calculation took {end-start} seconds')
+    return dDLR, end-start
 
 def find_host_galaxy(ra_gal, dec_gal, major_gal, minor_gal, position_angle_gal, ra_sn, dec_sn):
     """Finding the index of host galaxy with the minimum dDLR
@@ -239,8 +254,10 @@ def find_host_galaxy(ra_gal, dec_gal, major_gal, minor_gal, position_angle_gal, 
         numpy.int64: index of the host galaxy
     """
 
-    dDLRs_ned = []
+    dDLRs_rotated = []
     dDLRs = []
+    times_rotated = []
+    times_classic = []
 
     for i,ra in enumerate(ra_gal):
         gal_radec = co.SkyCoord(ra_gal[i], dec_gal[i], unit='deg')
@@ -248,26 +265,37 @@ def find_host_galaxy(ra_gal, dec_gal, major_gal, minor_gal, position_angle_gal, 
         sep = gal_radec.separation(sn_radec).arcsec
         # I calculate the dDLR if we are within 15"
         if sep < 30:
-            dDLR_value_ned, da, db = dDLR_ned(sn_radec, gal_radec, major_gal[i], minor_gal[i], position_angle_gal[i])
-            dDLR_value = get_dDLR(ra_gal[i], dec_gal[i], position_angle_gal[i], major_gal[i], minor_gal[i], ra_sn, dec_sn, plot=False)
-            dDLRs_ned.append(dDLR_value_ned)
+            dDLR_value_rotated, da, db, time_rotated = get_dDLR_rotated(sn_radec, gal_radec, major_gal[i], minor_gal[i], position_angle_gal[i], plot = False)
+            dDLR_value, time_classic = get_dDLR(ra_gal[i], dec_gal[i], position_angle_gal[i], major_gal[i], minor_gal[i], ra_sn, dec_sn, plot=False)
+            dDLRs_rotated.append(dDLR_value_rotated)
             dDLRs.append(dDLR_value)
+            times_rotated.append(time_rotated)
+            times_classic.append(time_classic)
             #separation = np.sqrt((da)**2+(db)**2)
         # else, I put something big so it is not going to be the minimum.
         else:
-            dDLRs_ned.append(np.inf)
+            dDLRs_rotated.append(np.inf)
             dDLRs.append(np.inf)
+            times_rotated.append(None)
+            times_classic.append(None)
 
-    dDLRs_ned = np.array(dDLRs_ned)
+    dDLRs_rotated = np.array(dDLRs_rotated)
     dDLRs = np.array(dDLRs)
+    times_rotated = np.array(times_rotated)
+    times_classic = np.array(times_classic)
 
-    ind = np.argmin(dDLRs)
-    print('neds dDLR = ',dDLRs_ned[ind], 'dDLR = ', dDLRs[ind])
+    if len(dDLRs) > 0:
+        ind = np.argmin(dDLRs)
+        if dDLRs[ind] > 4:
+            ind = None
+    else:
+        ind = None
+    #print('rotated axis dDLR = ',dDLRs_rotated[ind], ', classic dDLR = ', dDLRs[ind])
 
-    return ind
+    return ind, [dDLRs_rotated[ind], times_rotated[ind]], [dDLRs[ind], times_classic[ind]]
 
 
-def get_lsdr10_cat( identifier, ra, dec, search_radius_deg, i_limit=18., overwrite=False ):
+def get_lsdr10_cat(identifier, ra, dec, search_radius_deg, i_limit=18., overwrite=False ):
     cat_filename = f'{identifier}.ls_dr10.cat.fits'
 
     if os.path.exists( cat_filename ) and not overwrite:
@@ -300,8 +328,7 @@ def get_lsdr10_cat( identifier, ra, dec, search_radius_deg, i_limit=18., overwri
     tblResult.write(cat_filename, overwrite=overwrite )
 
     return tblResult
-from PIL import Image
-import requests
+
 def get_jpeg_cutout(size_arcmin, filename, ra, dec, pixscale = 0.262):
     #! pixscale = 0.262 # this is the LS DR10 standard; i.e. no resampling
     num_pixels = int( (size_arcmin*60.) / pixscale )+1
@@ -315,161 +342,4 @@ def get_jpeg_cutout(size_arcmin, filename, ra, dec, pixscale = 0.262):
     # NB. this does not actually save the image to disk
     # but this does!
     im.save(filename)
-
-
-#### The DATA ####
-galaxies_table = Table.read('data/gkvScienceCatv02.fits')
-#SN_table = Table.read('data/tns_SNIa_20240424_copy.csv')
-SN_table = Table.read('crossmatches/specifics/colour_mass_matched465.fits')
-## GALAXIES
-RA_gama = galaxies_table['RAcen']
-Dec_gama = galaxies_table['Deccen']
-ID = galaxies_table['CATAID']
-position_angle_gama = galaxies_table['ang']
-axrat = galaxies_table['axrat']
-major_gama = galaxies_table['R50'] # In arcsec
-minor_gama = major_gama*axrat
-
-## SN
-RA_sn = SN_table['ra']
-Dec_sn = SN_table['declination']
-sn_coords = co.SkyCoord(RA_sn*u.deg, Dec_sn*u.deg)
-sn_ids = SN_table['objid']
-
-
-# Selection of my region:
-#ind = np.where((RA_sn>=RA_gama.min())&(Dec_sn<=Dec_gama.max()))
-#sn_ids = sn_ids[ind]
-#RA_sn = RA_sn[ind]
-#Dec_sn = Dec_sn[ind]
-ind = random.randint(0, len(sn_ids)-1)
-
-center_RA = RA_sn[ind]
-center_Dec = Dec_sn[ind]
-
-
-#print(center_RA, center_Dec, RA_gama.min(), Dec_gama.min(), RA_gama.max(), Dec_gama.max())
-
-radius_deg = 2/60 #2 arcmin in deg
-
-
-max_RA = center_RA + radius_deg/2 # 1 arcmin in deg
-min_RA = center_RA - radius_deg/2
-max_Dec = center_Dec + radius_deg/2
-min_Dec = center_Dec - radius_deg/2
-
-# Find the data within this region:
-
-# We have already the SN
-# The galaxies:
-ind = np.where((RA_gama>min_RA)&(RA_gama<max_RA)&(Dec_gama>min_Dec)&(Dec_gama<max_Dec))
-RA_galaxies_region = RA_gama[ind]
-Dec_galaxies_region = Dec_gama[ind]
-
-print("\n number of galaxies: ",len(RA_galaxies_region))
-
-major_galaxies_region = major_gama[ind]
-minor_galaxies_region = minor_gama[ind]
-#print(position_angle_gama[ind]-90)
-position_angle_region = np.radians(position_angle_gama[ind]-90)
-#position_angle_region = [round(position_angle_region[i], 3) for i in range(len(position_angle_region))]
-ID = ID[ind]
-print(ID)
-print(Dec_galaxies_region)
-#! I need to think more about this:
-# dDLR = ang_sep/DLR. If dDLR = 1 -> ang_sep = DLR, if dDLR = 4 -> ang_sep = 4*DLR. For this I would need to calculate the DLR, i.e. take into accound the angle again?
-# But I don't need the angle since I want to plot all the ellipse.
-
-# dDLR: is a distance in DLR units. This metric is used to express the distance of a supernova relative to a galaxy's characteristic length scale (DLR).
-# A point with dDLR=1 is one DLR unit away from the galaxy center, while a point with dDLR=4 is four DLR units away.
-# To get the ellipse corresponding to a particular dDLR value, I scale the DLR by the dDLR value.
-
-# For dDLR = 1, the radius of the ellipse is the DLR itself, because ang_sep = DLR
-# For dDLR = 4, the radius of the ellipse is 4 times the DLR
-
-### Plot 1 settings ###
-
-plt.style.use(style.style1)
-fig1, ax1 = plt.subplots()
-ax1.set_title('SN and galaxies in a 2 arcmin region')
-ax1.set(xlabel = ('RA (deg)'), ylabel = ('Dec (deg)'), xlim=(max_RA, min_RA), ylim=(min_Dec, max_Dec))
-ax1.set_aspect('equal')
-#ax1.invert_xaxis()
-
-
-get_jpeg_cutout(2, 'deleteme.jpeg', center_RA, center_Dec)
-import matplotlib.image as mpimg
-img = mpimg.imread('deleteme.jpeg')
-#img = np.fliplr(img)
-
-plt.imshow(img, extent=[max_RA, min_RA, max_Dec, min_Dec])
-
-#legacy_survey_table = get_lsdr10_cat('deleteme', center_RA, center_Dec, radius_deg, overwrite=True)
-#hdu = fits.open('deleteme.ls_dr10.cat.fits')
-#print(hdu.info())
-#image_data = hdu.data
-#print(image_data)
-#ipdb.set_trace()
-#ax3.imshow(hdu, origin='lower', extent=[min_RA, max_RA, min_Dec, max_Dec])
-#exit()
-#ax1.imshow(image_data, origin='lower', extent=[min_RA, max_RA, min_Dec, max_Dec])
-
-# The two concentric ellipses for all galaxies in the region:
-#########################################
-#! TO TEST
-#!position_angle_region = [np.radians(-45) for i in range(len(position_angle_region))]
-#!print(np.degrees(position_angle_region))
-#########################################
-
-for i,pos in enumerate(RA_galaxies_region):
-    ax1 = draw_ellipses([1, 4], major_galaxies_region[i], minor_galaxies_region[i], position_angle_region[i], RA_galaxies_region[i], Dec_galaxies_region[i], ax1)
-
-angles_from_major = []
-for i,pos in enumerate(RA_galaxies_region):
-    angle = get_sn_angle(RA_galaxies_region[i], Dec_galaxies_region[i], major_galaxies_region[i], position_angle_region[i], center_RA, center_Dec,plot=True, ax=ax1)
-    angles_from_major.append(angle)
-
-###### FINDING THE HOST GALAXY ######
-# Another loop again, the loop before was only for some tests plottings, this one is going to be the real calculation (?)
-#position_angle_region = [round(position_angle_region[i], 3) for i in range(len(position_angle_region))]
-ind_host_galaxy= find_host_galaxy(RA_galaxies_region, Dec_galaxies_region, major_galaxies_region, minor_galaxies_region, position_angle_region, center_RA, center_Dec)
-
-# The host galaxy
-RA_host_galaxy = RA_galaxies_region[ind_host_galaxy]
-Dec_host_galaxy = Dec_galaxies_region[ind_host_galaxy]
-
-major_host_galaxy = major_galaxies_region[ind_host_galaxy]
-minor_host_galaxy = minor_galaxies_region[ind_host_galaxy]
-position_angle_host = position_angle_region[ind_host_galaxy]
-
-# PLOT the host galaxy in the same plot as the rest of the galaxies
-ax1.scatter(center_RA, center_Dec, label = 'SN', color = 'deeppink')
-print("SN coordinates = ",center_RA, center_Dec)
-ax1.scatter(RA_host_galaxy, Dec_host_galaxy,color='green', marker = '^', label = 'host galaxy' )
-plt.legend()
-plt.show()
-
-###### NOW ONLY THE HOST GALAXY AND THE VECTORS ########
-### Plot 2 settings ###
-
-fig2, ax2 = plt.subplots()
-ax2.set_title('SN and host galaxy')
-ax2.set(xlabel = ('RA (deg)'), ylabel = ('Dec (deg)'))
-ax2.set_aspect('equal')
-ax2.invert_xaxis()
-
-
-
-# Calculation of the DLR_host for every angle to do the plot of the ellipse
-draw_ellipses([1,4], major_host_galaxy, minor_host_galaxy, position_angle_host, RA_host_galaxy, Dec_host_galaxy, ax2)
-#* This is just to have the message in the terminal and the vector of the dDLR, not useful:
-get_sn_angle(RA_host_galaxy, Dec_host_galaxy, major_host_galaxy, position_angle_host, center_RA, center_Dec, host=True, ax=ax2)
-get_dDLR(RA_host_galaxy, Dec_host_galaxy, position_angle_host, major_host_galaxy, minor_host_galaxy, center_RA, center_Dec,ax=ax2, plot=True)
-
-# scatter of the galaxy and the SN PLOT
-ax2.scatter(center_RA, center_Dec, label = 'SN')
-#ax2.plot([center_RA,RA_host_galaxy], [center_Dec, Dec_host_galaxy], linestyle='dashed', color = 'green')
-
-plt.legend()
-plt.show()
 
