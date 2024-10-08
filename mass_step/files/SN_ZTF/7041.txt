@@ -8,3 +8,39 @@ Number of rotated times: 55
 Total time: 757.9225461483002 s
 Total time classic: 0.07858085632324219 s
 Total time rotated: 0.08711743354797363 s
+Number of galaxies: 55
+Number of uber galaxies: 55
+Number of SNe: 55
+Number of classic dDLRs: 55
+Number of rotated dDLRs: 55
+Number of classic times: 55
+Number of rotated times: 55
+Number of classic separations: 55
+Number of rotated separations: 55
+Total time: 556.8210709095001 s
+Total time classic: 0.053748369216918945 s
+Total time rotated: 0.06118607521057129 s
+Number of galaxies: 55
+Number of uber galaxies: 55
+Number of SNe: 55
+Number of classic dDLRs: 55
+Number of rotated dDLRs: 55
+Number of classic times: 55
+Number of rotated times: 55
+Number of classic separations: 55
+Number of rotated separations: 55
+Total time: 695.3548233509064 s
+Total time classic: 0.07977652549743652 s
+Total time rotated: 0.0879068374633789 s
+Number of galaxies: 55
+Number of uber galaxies: 55
+Number of SNe: 55
+Number of classic dDLRs: 55
+Number of rotated dDLRs: 55
+Number of classic times: 55
+Number of rotated times: 55
+Number of classic separations: 55
+Number of rotated separations: 55
+Total time: 578.6377005577087 s
+Total time classic: 0.05565524101257324 s
+Total time rotated: 0.061815500259399414 s

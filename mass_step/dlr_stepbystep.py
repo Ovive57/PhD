@@ -30,7 +30,48 @@ import ipdb #*ipdb.set_trace()
 # Constants
 #seed = random.seed(25)
 
-def draw_ellipses(scale_factor, major_axis, minor_axis, position_angle, ra_gal, dec_gal, ax):
+def rotation(x, y, angle, rot_type = 'anticlockwise'):
+    if rot_type == 'anticlockwise':
+        x_rotated = x * np.cos(angle) + y * np.sin(angle)
+        y_rotated = - x * np.sin(angle) + y * np.cos(angle)
+    elif rot_type == 'clockwise':
+        x_rotated = x * np.cos(angle) - y * np.sin(angle)
+        y_rotated = x * np.sin(angle) + y * np.cos(angle)
+    return x_rotated, y_rotated
+
+def get_region(ra_gal, dec_gal, major_gal, minor_gal, pos_ang_gal, ra_sn, dec_sn, sn_ids, catalog = 'GAMA', radius_deg = 2/60):
+    RA_galaxies_region = []
+    while len(RA_galaxies_region) == 0:
+        # Selection of my region:
+        ind = random.randint(0, len(sn_ids)-1)
+        center_RA = ra_sn[ind]
+        center_Dec = dec_sn[ind]
+        sn_id = sn_ids[ind]
+
+        max_RA = center_RA + radius_deg/2 # 1 arcmin in deg
+        min_RA = center_RA - radius_deg/2
+        max_Dec = center_Dec + radius_deg/2
+        min_Dec = center_Dec - radius_deg/2
+
+        # Find the data within this region:
+        ind = np.where((ra_gal>min_RA)&(ra_gal<max_RA)&(dec_gal>min_Dec)&(dec_gal<max_Dec))
+        RA_galaxies_region = ra_gal[ind]
+        Dec_galaxies_region = dec_gal[ind]
+        #print(uberID_galaxies_region, cataid_galaxies_region)
+        major_galaxies_region = major_gal[ind]
+        minor_galaxies_region = minor_gal[ind]
+        #print(position_angle_gama[ind]-90)
+        position_angle_region = np.radians(pos_ang_gal[ind]-90)
+        #position_angle_region = [round(position_angle_region[i], 3) for i in range(len(position_angle_region))]
+    print(f"\nNumber of galaxies in {catalog}: {len(RA_galaxies_region)}")
+
+    if len(RA_galaxies_region) == 0:
+        print("No galaxies in the region")
+        exit()
+
+    return ind, center_RA, center_Dec, sn_id, max_RA, min_RA, max_Dec, min_Dec
+
+def draw_ellipses(scale_factor, major_axis, minor_axis, position_angle, ra_gal, dec_gal, ax, rot_type = 'anticlockwise', colours = ['red', 'blue'], label = None):
     """Draws an ellipse with the DLR of a galaxy
 
     Args:
@@ -52,6 +93,12 @@ def draw_ellipses(scale_factor, major_axis, minor_axis, position_angle, ra_gal, 
     # minor axis = minor_galaxies_region
     # ra_gal = RA_galaxies_region
     # position_angle = position_angle_region
+    '''
+    print("\nTHE MAJOR AXIS",major_axis, "\n")
+    if major_axis == None:
+        ax.scatter(ra_gal, dec_gal, marker = 'x', color = 'orange')
+        return ax
+    '''
     major_axis = major_axis/3600 #arcsec to deg
     minor_axis = minor_axis/3600 #arcsec to deg
 
@@ -69,18 +116,29 @@ def draw_ellipses(scale_factor, major_axis, minor_axis, position_angle, ra_gal, 
     y_2 = r_2 * np.sin(xi_rad)
 
     # Rotate the ellipse by the position angle of the galaxy
-    x1_rotated = x_1 * np.cos(position_angle) + y_1 * np.sin(position_angle) + ra_gal
-    y1_rotated = - x_1 * np.sin(position_angle) + y_1 * np.cos(position_angle) + dec_gal
+    #x1_rotated = x_1 * np.cos(position_angle) + y_1 * np.sin(position_angle) + ra_gal
+    #y1_rotated = - x_1 * np.sin(position_angle) + y_1 * np.cos(position_angle) + dec_gal
 
-    x2_rotated = x_2 * np.cos(position_angle) + y_2 * np.sin(position_angle) + ra_gal
-    y2_rotated = - x_2 * np.sin(position_angle) + y_2 * np.cos(position_angle) + dec_gal
+    x1_rotated, y1_rotated = rotation(x_1, y_1, position_angle, rot_type = rot_type)
+    x1_rotated = x1_rotated + ra_gal
+    y1_rotated = y1_rotated + dec_gal
+
+    #x2_rotated = x_2 * np.cos(position_angle) + y_2 * np.sin(position_angle) + ra_gal
+    #y2_rotated = - x_2 * np.sin(position_angle) + y_2 * np.cos(position_angle) + dec_gal
+
+    x2_rotated, y2_rotated = rotation(x_2, y_2, position_angle, rot_type = rot_type)
+    x2_rotated = x2_rotated + ra_gal
+    y2_rotated = y2_rotated + dec_gal
 
     # Plot the results
+    if label:
+        ax.plot(x1_rotated, y1_rotated, color=colours[0], linestyle='-', label = label)
+        ax.plot(x2_rotated, y2_rotated, color=colours[1], linestyle='--')
+    else:
+        ax.plot(x1_rotated, y1_rotated, color=colours[0], linestyle='-')#, label = 'dDLR = 1/20')
+        ax.plot(x2_rotated, y2_rotated, color=colours[1], linestyle='--')#, label = 'dDLR = 4/20')
 
-    ax.plot(x1_rotated, y1_rotated, color='red', linestyle='-')#, label = 'dDLR = 1/20')
-    ax.plot(x2_rotated, y2_rotated, color='blue', linestyle='--')#, label = 'dDLR = 4/20')
-
-    ax.scatter(ra_gal, dec_gal, marker = 'x', color = 'orange')#, label = 'galaxy') #! Can I put the label only once even if I do a for loop? If label is, put it in.
+    #ax.scatter(ra_gal, dec_gal, marker = 'x', color = 'orange')#, label = 'galaxy') #! Can I put the label only once even if I do a for loop? If label is, put it in.
 
     return ax
 
@@ -114,7 +172,7 @@ def get_sn_angle(ra_gal, dec_gal, major_axis, position_angle, ra_sn, dec_sn, hos
 
 
     # Separation in the 2D
-    delta_ra = ra_sn - ra_gal
+    delta_ra = (ra_sn - ra_gal)*np.cos(np.radians(dec_sn)) # This is an approximation for small angles
     delta_dec = dec_sn - dec_gal
 
     angle_from_ra = np.arctan2(delta_dec, delta_ra) #angle in radians already
@@ -147,7 +205,7 @@ def get_sn_angle(ra_gal, dec_gal, major_axis, position_angle, ra_sn, dec_sn, hos
         ax.annotate(f'{np.degrees(angle_from_ra):.1f}°', xy=(x_mid+1, y_mid+1), color='deeppink', fontsize=12)
     return angle_from_major
 
-def get_dDLR_rotated(search_radec, galaxy_radec, galaxy_major, galaxy_minor, galaxy_angle_rad, ax=None, plot = True):
+def get_dDLR_rotated(ra_gal, dec_gal, ra_sn, dec_sn, galaxy_major, galaxy_minor, galaxy_angle_rad, ax=None, plot = True):
 
     """Calculates the dDLR between a galaxy and a SN without worrying about the angle between the galaxy and the SN
 
@@ -163,8 +221,10 @@ def get_dDLR_rotated(search_radec, galaxy_radec, galaxy_major, galaxy_minor, gal
         da, db (floats): distances to the object in the coordinates of the semi-major and semi-minor axis
     """
     start = time.time()
+    gal_radec = co.SkyCoord(ra_gal, dec_gal, unit='deg')
+    sn_radec = co.SkyCoord(ra_sn, dec_sn, unit = 'deg')
     # work out the RA/dec offsets from search pos to galaxy
-    alpha, delta = search_radec.spherical_offsets_to(galaxy_radec)
+    alpha, delta = sn_radec.spherical_offsets_to(gal_radec)
 
     # choose to work in units of arcsec for convenience
     dx, dy = alpha.arcsec, delta.arcsec
@@ -172,7 +232,9 @@ def get_dDLR_rotated(search_radec, galaxy_radec, galaxy_major, galaxy_minor, gal
     # now rotate these dx/dy to match the galaxy angle:
     cos_gal_ang, sin_gal_ang = np.cos(galaxy_angle_rad), np.sin(galaxy_angle_rad)
     # this is just the ordinary rotation matrix
-    da, db = cos_gal_ang*dx - sin_gal_ang*dy, + sin_gal_ang*dx + cos_gal_ang*dy
+    #da, db = cos_gal_ang*dx - sin_gal_ang*dy, + sin_gal_ang*dx + cos_gal_ang*dy
+    da = rotation(dx, dy, galaxy_angle_rad, rot_type = 'clockwise')[0]
+    db = rotation(dx, dy, galaxy_angle_rad, rot_type = 'clockwise')[1]
     #! note this is mathematicians and not astronomers angle
     # now da and db are separations in arcsec in the coord system of the semimaj/minor axes.
 
@@ -189,8 +251,8 @@ def get_dDLR_rotated(search_radec, galaxy_radec, galaxy_major, galaxy_minor, gal
     phi3 = np.arccos(da/sep) # This put the angle always in the first and second quadrant (0° to 180°)
 
     #print(f' Rotated axis angle = {np.degrees(phi):.1f}°, other angle = {np.degrees(phi2):.1f}°, other angle = {np.degrees(phi3):.1f}°')
-    ra_gal = galaxy_radec.ra.deg
-    dec_gal = galaxy_radec.dec.deg
+    #ra_gal = galaxy_radec.ra.deg
+    #dec_gal = galaxy_radec.dec.deg
     if plot:
         unit_dDLR = DLR #! It is 1 DLR
         x1_dlr_vector = ra_gal
@@ -200,7 +262,7 @@ def get_dDLR_rotated(search_radec, galaxy_radec, galaxy_major, galaxy_minor, gal
         ax.plot([x2_dlr_vector,x1_dlr_vector], [y2_dlr_vector,y1_dlr_vector], linestyle='-', color = 'deeppink')
 
         print(f'rotated axis dDLR calculation took {end-start} seconds')
-    return dDLR, da, db, end-start
+    return dDLR, sep, end-start
 
 def get_dDLR(ra_gal, dec_gal, position_angle_gal, major_gal, minor_gal, ra_sn, dec_sn, ax=None, plot = True):
     """Get the dDLR with the classic method
@@ -236,9 +298,9 @@ def get_dDLR(ra_gal, dec_gal, position_angle_gal, major_gal, minor_gal, ra_sn, d
         y2_dlr_vector = dec_gal + (unit_dDLR * np.sin(phi-position_angle_gal))/3600
         ax.plot([x1_dlr_vector,x2_dlr_vector], [y1_dlr_vector,y2_dlr_vector], linestyle='-', color = 'black')
         print(f'classic dDLR calculation took {end-start} seconds')
-    return dDLR, end-start
+    return dDLR, sep, end-start
 
-def find_host_galaxy(ra_gal, dec_gal, major_gal, minor_gal, position_angle_gal, ra_sn, dec_sn):
+def find_host_galaxy(ra_gal, dec_gal, major_gal, minor_gal, position_angle_gal, ra_sn, dec_sn, plot=False, catalogue = 'GAMA'):
     """Finding the index of host galaxy with the minimum dDLR
 
     Args:
@@ -258,67 +320,120 @@ def find_host_galaxy(ra_gal, dec_gal, major_gal, minor_gal, position_angle_gal, 
     dDLRs = []
     times_rotated = []
     times_classic = []
+    separation_classic = []
+    separation_rotated = []
 
     for i,ra in enumerate(ra_gal):
-        gal_radec = co.SkyCoord(ra_gal[i], dec_gal[i], unit='deg')
-        sn_radec = co.SkyCoord(ra_sn, dec_sn, unit = 'deg')
-        sep = gal_radec.separation(sn_radec).arcsec
-        # I calculate the dDLR if we are within 15"
-        if sep < 30:
-            dDLR_value_rotated, da, db, time_rotated = get_dDLR_rotated(sn_radec, gal_radec, major_gal[i], minor_gal[i], position_angle_gal[i], plot = False)
-            dDLR_value, time_classic = get_dDLR(ra_gal[i], dec_gal[i], position_angle_gal[i], major_gal[i], minor_gal[i], ra_sn, dec_sn, plot=False)
+        # I calculate the dDLR for all the galaxies because I asume that a previous selection was done, i.e. the function is called after a selection of a region near the SN
+        dDLR_value_rotated, sep_rotated, time_rotated = get_dDLR_rotated(ra_gal[i], dec_gal[i], ra_sn, dec_sn, major_gal[i], minor_gal[i], position_angle_gal[i], plot = False)
+        dDLR_value, sep_classic, time_classic = get_dDLR(ra_gal[i], dec_gal[i], position_angle_gal[i], major_gal[i], minor_gal[i], ra_sn, dec_sn, plot=False)
+        if sep_classic < 47:
             dDLRs_rotated.append(dDLR_value_rotated)
             dDLRs.append(dDLR_value)
             times_rotated.append(time_rotated)
             times_classic.append(time_classic)
-            #separation = np.sqrt((da)**2+(db)**2)
-        # else, I put something big so it is not going to be the minimum.
+            separation_classic.append(sep_classic)
+            separation_rotated.append(sep_rotated)
+            # else, I put something big so it is not going to be the minimum.
         else:
             dDLRs_rotated.append(np.inf)
             dDLRs.append(np.inf)
             times_rotated.append(None)
             times_classic.append(None)
+            separation_classic.append(np.inf)
+            separation_rotated.append(np.inf)
 
     dDLRs_rotated = np.array(dDLRs_rotated)
     dDLRs = np.array(dDLRs)
     times_rotated = np.array(times_rotated)
     times_classic = np.array(times_classic)
+    separation_classic = np.array(separation_classic)
+    separation_rotated = np.array(separation_rotated)
 
     if len(dDLRs) > 0:
         ind = np.argmin(dDLRs)
         if dDLRs[ind] > 4:
             ind = None
+            if plot:
+                print(f'\nNo host galaxy found for {catalogue}\n')
+            return ind, [None, None, None], [None, None, None]
+        else:
+            return ind, [dDLRs_rotated[ind], times_rotated[ind], separation_rotated[ind]], [dDLRs[ind], times_classic[ind], separation_classic[ind]]
+
+
     else:
         ind = None
+        return ind, [None, None, None], [None, None, None]
     #print('rotated axis dDLR = ',dDLRs_rotated[ind], ', classic dDLR = ', dDLRs[ind])
 
-    return ind, [dDLRs_rotated[ind], times_rotated[ind]], [dDLRs[ind], times_classic[ind]]
 
 
-def get_lsdr10_cat(identifier, ra, dec, search_radius_deg, i_limit=18., overwrite=False ):
-    cat_filename = f'{identifier}.ls_dr10.cat.fits'
 
-    if os.path.exists( cat_filename ) and not overwrite:
-        return Table.read( cat_filename )
+def get_lsdr10_cat(identifier, ra, dec, search_radius_deg, overwrite=False, shape_r = 0, excess_factor = 2.5, parallax = 5):
+
 
     print( f'querying legacy with a search radius of {search_radius_deg} deg.' )
 
     tap_service = pyvo.dal.TAPService("https://datalab.noirlab.edu/tap")
-    ex_query = f"""
-            SELECT tr.ls_id, tr.ra, tr.dec, tr.ref_cat, tr.ref_id, tr.gaia_phot_bp_rp_excess_factor, 
-                tr.mag_g, tr.mag_r, tr.mag_i, tr.mag_z, tr.mag_w1, tr.mag_w2, 
-                tr.sersic, tr.sersic_ivar,  tr.shape_e1, tr.shape_e1_ivar, tr.shape_e2, tr.shape_e2_ivar, 
-                tr.shape_r,  tr.shape_r_ivar, zp.z_spec, zp.survey, zp.z_phot_mean, zp.z_phot_mean_i, 
-                zp.z_phot_std, zp.z_phot_l68, zp.z_phot_u68, zp.z_phot_l95, zp.z_phot_u95
-            FROM ls_dr10.tractor as tr JOIN ls_dr10.photo_z as zp ON tr.ls_id = zp.ls_id
-            WHERE 't' = Q3C_RADIAL_QUERY(tr.ra,tr.dec,{ra:.6f},{dec:+.6f},{search_radius_deg:.6f}) AND tr.mag_i < {i_limit}
-            """
 
+    if shape_r!= None:
+        ex_query = f"""
+                SELECT tr.ls_id, tr.ra, tr.dec, tr.ref_cat, tr.ref_id, tr.gaia_phot_bp_rp_excess_factor, tr.parallax,
+                    tr.mag_g, tr.mag_r, tr.mag_i, tr.mag_z, tr.mag_w1, tr.mag_w2, 
+                    tr.sersic, tr.sersic_ivar,  tr.shape_e1, tr.shape_e1_ivar, tr.shape_e2, tr.shape_e2_ivar, 
+                    tr.shape_r,  tr.shape_r_ivar, tr.gaia_duplicated_source, zp.z_spec, zp.survey, zp.z_phot_mean, zp.z_phot_mean_i, 
+                    zp.z_phot_std, zp.z_phot_l68, zp.z_phot_u68, zp.z_phot_l95, zp.z_phot_u95
+                FROM ls_dr10.tractor as tr JOIN ls_dr10.photo_z as zp ON tr.ls_id = zp.ls_id
+                WHERE 't' = Q3C_RADIAL_QUERY(tr.ra,tr.dec,{ra:.6f},{dec:+.6f},{search_radius_deg:.6f}) AND tr.shape_r > {shape_r}
+                """
+        cat_filename = f'{identifier}_shape_{shape_r}.ls_dr10.cat.fits'
+        if os.path.exists( cat_filename ) and not overwrite:
+            return Table.read( cat_filename )
+    if shape_r != None and excess_factor != None:
+        ex_query = f"""
+                SELECT tr.ls_id, tr.ra, tr.dec, tr.ref_cat, tr.ref_id, tr.gaia_phot_bp_rp_excess_factor, tr.parallax,
+                    tr.mag_g, tr.mag_r, tr.mag_i, tr.mag_z, tr.mag_w1, tr.mag_w2, 
+                    tr.sersic, tr.sersic_ivar,  tr.shape_e1, tr.shape_e1_ivar, tr.shape_e2, tr.shape_e2_ivar, 
+                    tr.shape_r,  tr.shape_r_ivar, tr.gaia_duplicated_source, zp.z_spec, zp.survey, zp.z_phot_mean, zp.z_phot_mean_i, 
+                    zp.z_phot_std, zp.z_phot_l68, zp.z_phot_u68, zp.z_phot_l95, zp.z_phot_u95
+                FROM ls_dr10.tractor as tr JOIN ls_dr10.photo_z as zp ON tr.ls_id = zp.ls_id
+                WHERE 't' = Q3C_RADIAL_QUERY(tr.ra,tr.dec,{ra:.6f},{dec:+.6f},{search_radius_deg:.6f}) AND tr.shape_r > {shape_r} AND tr.gaia_phot_bp_rp_excess_factor > {excess_factor}
+                """
+        cat_filename = f'{identifier}_shape_{shape_r}_excessfactor_{excess_factor}.ls_dr10.cat.fits'
+        if os.path.exists( cat_filename ) and not overwrite:
+            return Table.read( cat_filename )
+    if shape_r != None and excess_factor != None and parallax != None:
+        ex_query = f"""
+                SELECT tr.ls_id, tr.ra, tr.dec, tr.ref_cat, tr.ref_id, tr.gaia_phot_bp_rp_excess_factor, tr.parallax,
+                    tr.mag_g, tr.mag_r, tr.mag_i, tr.mag_z, tr.mag_w1, tr.mag_w2, 
+                    tr.sersic, tr.sersic_ivar,  tr.shape_e1, tr.shape_e1_ivar, tr.shape_e2, tr.shape_e2_ivar, 
+                    tr.shape_r,  tr.shape_r_ivar, tr.gaia_duplicated_source, zp.z_spec, zp.survey, zp.z_phot_mean, zp.z_phot_mean_i, 
+                    zp.z_phot_std, zp.z_phot_l68, zp.z_phot_u68, zp.z_phot_l95, zp.z_phot_u95
+                FROM ls_dr10.tractor as tr JOIN ls_dr10.photo_z as zp ON tr.ls_id = zp.ls_id
+                WHERE 't' = Q3C_RADIAL_QUERY(tr.ra,tr.dec,{ra:.6f},{dec:+.6f},{search_radius_deg:.6f}) AND tr.shape_r > {shape_r} AND tr.gaia_phot_bp_rp_excess_factor > {excess_factor} AND tr.parallax < {parallax}
+                """
+        cat_filename = f'{identifier}_shape_{shape_r}_excessfactor_{excess_factor}_parallax_{parallax}.ls_dr10.cat.fits'
+        if os.path.exists( cat_filename ) and not overwrite:
+            return Table.read( cat_filename )
+    if shape_r == None and excess_factor == None and parallax == None:
+        ex_query = f"""
+                SELECT tr.ls_id, tr.ra, tr.dec, tr.ref_cat, tr.ref_id, tr.gaia_phot_bp_rp_excess_factor, tr.parallax, tr.parallax_ivar, 
+                    tr.mag_g, tr.mag_r, tr.mag_i, tr.mag_z, tr.mag_w1, tr.mag_w2, 
+                    tr.sersic, tr.sersic_ivar,  tr.shape_e1, tr.shape_e1_ivar, tr.shape_e2, tr.shape_e2_ivar, 
+                    tr.shape_r,  tr.shape_r_ivar, tr.gaia_duplicated_source, zp.z_spec, zp.survey, zp.z_phot_mean, zp.z_phot_mean_i, 
+                    zp.z_phot_std, zp.z_phot_l68, zp.z_phot_u68, zp.z_phot_l95, zp.z_phot_u95
+                FROM ls_dr10.tractor as tr JOIN ls_dr10.photo_z as zp ON tr.ls_id = zp.ls_id
+                WHERE 't' = Q3C_RADIAL_QUERY(tr.ra,tr.dec,{ra:.6f},{dec:+.6f},{search_radius_deg:.6f})
+                """
+        cat_filename = f'{identifier}_without_restrictions.ls_dr10.cat.fits'
+        if os.path.exists( cat_filename ) and not overwrite:
+            return Table.read( cat_filename )
+    #    AND tr.parallax < 5
     # NB. uses gaia 'excess factor' to exclude gaia point sources (i.e. stars)
     # Can effectively exclude stars using
     # AND (gaia_phot_bp_rp_excess_factor > 3.5 or gaia_phot_bp_rp_excess_factor <= 0)
     #         AND shape_e1 > 0 AND shape_e2 > 0  --- to exclude saturated stars
-    print( ex_query )
+    #print( ex_query )
 
     result = tap_service.search(ex_query)
     tblResult = result.to_table()
@@ -333,7 +448,7 @@ def get_jpeg_cutout(size_arcmin, filename, ra, dec, pixscale = 0.262):
     #! pixscale = 0.262 # this is the LS DR10 standard; i.e. no resampling
     num_pixels = int( (size_arcmin*60.) / pixscale )+1
     imagequery = (
-        f'https://www.legacysurvey.org/viewer/jpeg-cutout?ra={ra}&dec={dec}&size={num_pixels}&pixscale={pixscale}&layer=ls-dr10')  
+        f'https://www.legacysurvey.org/viewer/jpeg-cutout?ra={ra}&dec={dec}&size={num_pixels}&pixscale={pixscale}&layer=ls-dr10')
 
     # and here is actually issuing the request and opening image
     f = urllib.request.urlopen(imagequery)
